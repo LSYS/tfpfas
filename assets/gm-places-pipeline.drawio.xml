@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36" version="29.2.7">
+  <diagram name="Page-1" id="SISuuuE55GYxdeHy-N7r">
+    <mxGraphModel dx="1042" dy="704" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font style=&quot;font-size: 11px;&quot;&gt;Transport Facilities land parcels&lt;br&gt;(&lt;i&gt;N = 363&lt;/i&gt;)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="220" x="160" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;font style=&quot;font-size: 11px;&quot;&gt;Known GUSTO residences&lt;br&gt;(&lt;i&gt;N = 784&lt;/i&gt;)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="140" x="530" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;Reverse geocode&lt;br style=&quot;&quot;&gt;(&lt;i&gt;N = 246&lt;/i&gt;)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="130" x="160" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-9" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="600" y="340" />
+            </Array>
+            <mxPoint x="600" y="330" as="sourcePoint" />
+            <mxPoint x="380" y="340" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;Places&lt;br&gt;(&lt;i&gt;N = 246&lt;/i&gt;)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="130" x="360" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-16" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=20;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;Payload&lt;/font&gt;" vertex="1">
+          <mxGeometry height="40" width="130" x="360" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-17" parent="Gm3ieQkCSQm94Y823UP0-16" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Business status, Google place&lt;/font&gt;" vertex="1">
+          <mxGeometry height="20" width="130" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-21" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=20;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;Payload&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="130" x="160" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-22" parent="Gm3ieQkCSQm94Y823UP0-21" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Address, Google place type, Google Place ID&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="130" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-25" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;Place photos&lt;br&gt;(&lt;i&gt;N = 193&lt;/i&gt;)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="130" x="560" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-26" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=20;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;Payload&lt;/font&gt;" vertex="1">
+          <mxGeometry height="40" width="130" x="560" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-27" parent="Gm3ieQkCSQm94Y823UP0-26" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;~1k place photos&lt;/font&gt;" vertex="1">
+          <mxGeometry height="20" width="130" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-30" edge="1" parent="1" source="Gm3ieQkCSQm94Y823UP0-7" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="Gm3ieQkCSQm94Y823UP0-15" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="450" y="380" as="sourcePoint" />
+            <mxPoint x="500" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-31" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="490" y="399.65999999999997" as="sourcePoint" />
+            <mxPoint x="560" y="399.65999999999997" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-34" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font style=&quot;font-size: 11px;&quot;&gt;Within 1000m of residence&lt;br&gt;(&lt;i&gt;N = 298&lt;/i&gt;)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="220" x="160" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-35" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Gm3ieQkCSQm94Y823UP0-7" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="224.76" y="350" as="sourcePoint" />
+            <mxPoint x="224.76" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-44" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#4D4D4D;" value="" vertex="1">
+          <mxGeometry height="110" width="550" x="150" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-45" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="&lt;font style=&quot;font-size: 11px;&quot;&gt;Google Location and Mapping&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="200" x="500" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-49" edge="1" parent="1" source="Gm3ieQkCSQm94Y823UP0-1" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="225" y="300" />
+            </Array>
+            <mxPoint x="224.66000000000003" y="290" as="sourcePoint" />
+            <mxPoint x="224.66000000000003" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-50" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#333333;dashed=1;" value="" vertex="1">
+          <mxGeometry height="100" width="340" x="150" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-51" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#333333;dashed=1;" value="" vertex="1">
+          <mxGeometry height="100" width="200" x="500" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-54" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="&lt;font style=&quot;font-size: 11px;&quot;&gt;Land Use&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="80" x="425" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="Gm3ieQkCSQm94Y823UP0-55" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="&lt;font style=&quot;font-size: 11px;&quot;&gt;GUSTO cohort data&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="110" x="600" y="340" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
