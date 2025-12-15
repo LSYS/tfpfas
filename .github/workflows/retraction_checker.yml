@@ -1,4 +1,4 @@
-name: Retracted Articles Check
+name: Retracted Citations Checker
 
 on:
   push:
