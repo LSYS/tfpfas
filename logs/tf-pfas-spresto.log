@@ -1,0 +1,1661 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  \\wsl.localhost\Debian\home\lsys\gusto\scripts\tfpfas\logs/tf-pfas
+> -spresto.smcl
+  log type:  smcl
+ opened on:   6 Dec 2025, 09:55:36
+
+. 
+. * ===========================================================================
+> ==
+. * Program Setup
+. * ===========================================================================
+> ==
+. cls                                     // Clear results window
+
+. clear all               // Start with a clean slate
+
+. set more off            // Disable partitioned output
+
+. macro drop _all         // Clear all macros to avoid namespace conflicts
+
+. set linesize 120        // Line size limit to make output more readable, affe
+> cts logs
+
+. 
+. // Still on version 13 :(
+. version 13              
+
+. local stata_version : display c(version)
+
+. 
+. // Add path to ados
+. adopath ++ ./ado                
+  [1]              "./ado"
+  [2]              "../../../assets/stata-utils"
+  [3]  (BASE)      "C:\Program Files (x86)\Stata13\ado\base/"
+  [4]  (SITE)      "C:\Program Files (x86)\Stata13\ado\site/"
+  [5]              "."
+  [6]  (PERSONAL)  "c:\ado\personal/"
+  [7]  (PLUS)      "c:\ado\plus/"
+  [8]  (OLDPLACE)  "c:\ado/"
+
+. 
+. tictoc tic
+-------------------------------------------------------------------------------
+----------- Time log -----------
+Start time:  6 Dec 2025 09:55:37
+-------------------------------------------------------------------------------
+
+. 
+. use ./data/edc-spresto.dta, clear
+
+. // ==========================================================================
+> ==
+. * PFAS
+. global pfas pfhxs pfos_linear pfos_branched pfoa_linear pfna pfhps pfda pfhpa
+>  
+
+. 
+. * Prep basic family demo
+. encode pcv1_working_status, gen(employed)
+
+. encode pcv1_highest_education_completed, gen(educ)
+
+. encode pcv1_marital_status, gen(marital)
+
+. encode ethnic_group, gen(ethnic)
+
+. encode hhincome_txt, gen(hhincome)
+
+. 
+. global baselines c.age_at_recruitment##c.age_at_recruitment i.employed i.educ
+>  i.marital i.ethnic i.hhincome
+
+. 
+. // ==========================================================================
+> ==
+. local storespecs_file ./data/pfas-tf-spresto
+
+. 
+. cap erase `storespecs_file'.dta
+
+. local x buff500m_transport_facilities
+
+. preserve
+
+. qui su `x'
+
+. replace `x' = `x' / r(sd) if !missing(`x')
+(531 real changes made)
+
+. 
+. foreach pfas of global pfas {
+  2.         qui su `pfas'
+  3.         replace `pfas' = `pfas' / r(sd) if !missing(`pfas')
+  4.         reghdfe `pfas' `x' $baselines, abs(subzone2014) cluster(planning_a
+> rea2014) keepsing
+  5.         storespecs `x', spec_name(`pfas') file(`storespecs_file')
+  6. }
+(384 real changes made)
+WARNING: Singleton observations not dropped; statistical significance is biased
+>  (link)
+(MWFE estimator converged in 1 iterations)
+warning: missing F statistic; dropped variables due to collinearity or too few 
+> clusters
+
+HDFE Linear regression                            Number of obs   =        313
+Absorbing 1 HDFE group                            F(  25,     26) =          .
+Statistics robust to heteroskedasticity           Prob > F        =          .
+                                                  R-squared       =     0.7742
+                                                  Adj R-squared   =     0.5832
+                                                  Within R-sq.    =     0.2572
+Number of clusters (planning_area2014) =         27Root MSE       =     0.7013
+
+                                                              (Std. Err. adjust
+> ed for 27 clusters in planning_area2014)
+-------------------------------------------------------------------------------
+----------------------------------------
+                                                      |               Robust
+                                                pfhxs |      Coef.   Std. Err. 
+>      t                                                                       
+>           P>|t|                                                              
+>                     [95% Con                                                 
+>                             f. Interval]
+------------------------------------------------------+------------------------
+----------------------------------------
+                        buff500m_transport_facilities |   .0376407   .0287351  
+>    1.31                                                                      
+>           0.202                                                              
+>                    -.0214252                                                 
+>                                 .0967066
+                                   age_at_recruitment |   .1823725   .3082483  
+>    0.59                                                                      
+>           0.559                                                              
+>                    -.4512409                                                 
+>                                 .8159858
+                                                      |
+            c.age_at_recruitment#c.age_at_recruitment |  -.0028081   .0049402  
+>   -0.57                                                                      
+>           0.575                                                              
+>                    -.0129629                                                 
+>                                 .0073468
+                                                      |
+                                             employed |
+                                             Working  |   .2581198   .1120604  
+>    2.30                                                                      
+>           0.030                                                              
+>                     .0277764                                                 
+>                                 .4884632
+                                                      |
+                                                 educ |
+Institute of Technical Education ITE/NTC, NITEC, h..  |   .6377905    .349373  
+>    1.83                                                                      
+>           0.079                                                              
+>                    -.0803561                                                 
+>                                 1.355937
+Junior College/Centralised Institute GCE 'A' Level..  |   .3692983   .1715651  
+>    2.15                                                                      
+>           0.041                                                              
+>                     .0166411                                                 
+>                                 .7219554
+               Postgraduate Masters degree/Doctorate  |   .2128909   .2403967  
+>    0.89                                                                      
+>           0.384                                                              
+>                    -.2812515                                                 
+>                                 .7070334
+                         Secondary GCE 'O'/'N' Level  |  -.4162745    .548011  
+>   -0.76                                                                      
+>           0.454                                                              
+>                    -1.542727                                                 
+>                                 .7101782
+     Trade or work qualification not from University  |   -1.22306   .2791256  
+>   -4.38                                                                      
+>           0.000                                                              
+>                    -1.796811                                                 
+>                                -.6493092
+University Bachelor's Degree/Postgrad Diploma/Prof..  |    -.01238    .137819  
+>   -0.09                                                                      
+>           0.929                                                              
+>                     -.295671                                                 
+>                                 .2709109
+                                                      |
+                                              marital |
+               Married/civil partnership/civil union  |   .1319542   .2055076  
+>    0.64                                                                      
+>           0.526                                                              
+>                    -.2904728                                                 
+>                                 .5543811
+                                       Never married  |  -.0118303    .340816  
+>   -0.03                                                                      
+>           0.973                                                              
+>                    -.7123876                                                 
+>                                  .688727
+                                           Separated  |   .7084292   .3179481  
+>    2.23                                                                      
+>           0.035                                                              
+>                     .0548775                                                 
+>                                 1.361981
+                                                      |
+                                               ethnic |
+                                              Indian  |  -.3240837   .1854227  
+>   -1.75                                                                      
+>           0.092                                                              
+>                    -.7052254                                                 
+>                                 .0570581
+                                               Malay  |   .2957507   .1564391  
+>    1.89                                                                      
+>           0.070                                                              
+>                    -.0258144                                                 
+>                                 .6173158
+                                                 Mix  |   .4400099   .3739358  
+>    1.18                                                                      
+>           0.250                                                              
+>                    -.3286261                                                 
+>                                 1.208646
+                                                      |
+                                             hhincome |
+                                 1,622 - 3,273/month  |   2.509124   1.821819  
+>    1.38                                                                      
+>           0.180                                                              
+>                    -1.235679                                                 
+>                                 6.253927
+                               10,694 - 13,188/month  |   2.626927   1.909403  
+>    1.38                                                                      
+>           0.181                                                              
+>                    -1.297907                                                 
+>                                 6.551762
+                               13,189 - 16,601/month  |    2.64543   1.901464  
+>    1.39                                                                      
+>           0.176                                                              
+>                    -1.263085                                                 
+>                                 6.553945
+                                    16,601 and above  |   3.018504   1.822292  
+>    1.66                                                                      
+>           0.110                                                              
+>                    -.7272698                                                 
+>                                 6.764278
+                                 3,274 - 4,676/month  |   2.565353   1.961397  
+>    1.31                                                                      
+>           0.202                                                              
+>                    -1.466357                                                 
+>                                 6.597063
+                                 4,677 - 6,144/month  |   2.879868   1.951746  
+>    1.48                                                                      
+>           0.152                                                              
+>                    -1.132003                                                 
+>                                 6.891739
+                                 6,145 - 7,423/month  |   2.599617   1.976159  
+>    1.32                                                                      
+>           0.200                                                              
+>                    -1.462437                                                 
+>                                 6.661671
+                                 7,424 - 9,082/month  |   2.421553   1.977557  
+>    1.22                                                                      
+>           0.232                                                              
+>                    -1.643372                                                 
+>                                 6.486479
+                                9,083 - 10,693/month  |   2.745775   1.979111  
+>    1.39                                                                      
+>           0.177                                                              
+>                    -1.322347                                                 
+>                                 6.813896
+                                                      |
+                                                _cons |  -4.742555   6.134979  
+>   -0.77                                                                      
+>           0.446                                                              
+>                    -17.35319                                                 
+>                                 7.868075
+-------------------------------------------------------------------------------
+----------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+ subzone2014 |       119         119           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 0, now 1
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(note: file ./data/pfas-tf-spresto.dta not found)
+file ./data/pfas-tf-spresto.dta saved
+(384 real changes made)
+WARNING: Singleton observations not dropped; statistical significance is biased
+>  (link)
+(MWFE estimator converged in 1 iterations)
+warning: missing F statistic; dropped variables due to collinearity or too few 
+> clusters
+
+HDFE Linear regression                            Number of obs   =        313
+Absorbing 1 HDFE group                            F(  25,     26) =          .
+Statistics robust to heteroskedasticity           Prob > F        =          .
+                                                  R-squared       =     0.5092
+                                                  Adj R-squared   =     0.0940
+                                                  Within R-sq.    =     0.1861
+Number of clusters (planning_area2014) =         27Root MSE       =     0.9986
+
+                                                              (Std. Err. adjust
+> ed for 27 clusters in planning_area2014)
+-------------------------------------------------------------------------------
+----------------------------------------
+                                                      |               Robust
+                                          pfos_linear |      Coef.   Std. Err. 
+>      t                                                                       
+>           P>|t|                                                              
+>                     [95% Con                                                 
+>                             f. Interval]
+------------------------------------------------------+------------------------
+----------------------------------------
+                        buff500m_transport_facilities |   .1004377   .0362602  
+>    2.77                                                                      
+>           0.010                                                              
+>                     .0259037                                                 
+>                                 .1749717
+                                   age_at_recruitment |  -.1747194   .3113376  
+>   -0.56                                                                      
+>           0.579                                                              
+>                    -.8146831                                                 
+>                                 .4652443
+                                                      |
+            c.age_at_recruitment#c.age_at_recruitment |   .0026519    .004923  
+>    0.54                                                                      
+>           0.595                                                              
+>                    -.0074675                                                 
+>                                 .0127713
+                                                      |
+                                             employed |
+                                             Working  |   .4587959   .1664593  
+>    2.76                                                                      
+>           0.011                                                              
+>                      .116634                                                 
+>                                 .8009579
+                                                      |
+                                                 educ |
+Institute of Technical Education ITE/NTC, NITEC, h..  |   .4823922   .3706548  
+>    1.30                                                                      
+>           0.205                                                              
+>                    -.2794997                                                 
+>                                 1.244284
+Junior College/Centralised Institute GCE 'A' Level..  |   -.395345   .4761576  
+>   -0.83                                                                      
+>           0.414                                                              
+>                    -1.374101                                                 
+>                                 .5834109
+               Postgraduate Masters degree/Doctorate  |  -.0030203   .2303659  
+>   -0.01                                                                      
+>           0.990                                                              
+>                    -.4765441                                                 
+>                                 .4705035
+                         Secondary GCE 'O'/'N' Level  |  -.0564205   .3911015  
+>   -0.14                                                                      
+>           0.886                                                              
+>                    -.8603412                                                 
+>                                 .7475001
+     Trade or work qualification not from University  |  -1.645428   .2872103  
+>   -5.73                                                                      
+>           0.000                                                              
+>                    -2.235798                                                 
+>                                -1.055059
+University Bachelor's Degree/Postgrad Diploma/Prof..  |   -.018921   .2264767  
+>   -0.08                                                                      
+>           0.934                                                              
+>                    -.4844506                                                 
+>                                 .4466085
+                                                      |
+                                              marital |
+               Married/civil partnership/civil union  |  -.7514109    .330784  
+>   -2.27                                                                      
+>           0.032                                                              
+>                    -1.431347                                                 
+>                                -.0714746
+                                       Never married  |  -1.208579   .6194988  
+>   -1.95                                                                      
+>           0.062                                                              
+>                    -2.481977                                                 
+>                                 .0648191
+                                           Separated  |  -.6926042    .663915  
+>   -1.04                                                                      
+>           0.306                                                              
+>                    -2.057301                                                 
+>                                 .6720926
+                                                      |
+                                               ethnic |
+                                              Indian  |  -1.400036   .3800403  
+>   -3.68                                                                      
+>           0.001                                                              
+>                     -2.18122                                                 
+>                                -.6188519
+                                               Malay  |   .1596157   .2526792  
+>    0.63                                                                      
+>           0.533                                                              
+>                    -.3597739                                                 
+>                                 .6790053
+                                                 Mix  |  -.0150611   .2362114  
+>   -0.06                                                                      
+>           0.950                                                              
+>                    -.5006006                                                 
+>                                 .4704783
+                                                      |
+                                             hhincome |
+                                 1,622 - 3,273/month  |  -.5881246    .718065  
+>   -0.82                                                                      
+>           0.420                                                              
+>                    -2.064128                                                 
+>                                 .8878791
+                               10,694 - 13,188/month  |  -.4602625   .8037647  
+>   -0.57                                                                      
+>           0.572                                                              
+>                    -2.112424                                                 
+>                                   1.1919
+                               13,189 - 16,601/month  |  -.7413634   .8512425  
+>   -0.87                                                                      
+>           0.392                                                              
+>                    -2.491117                                                 
+>                                 1.008391
+                                    16,601 and above  |  -.0545417   .7600454  
+>   -0.07                                                                      
+>           0.943                                                              
+>                    -1.616837                                                 
+>                                 1.507754
+                                 3,274 - 4,676/month  |   -.316723   .8278715  
+>   -0.38                                                                      
+>           0.705                                                              
+>                    -2.018437                                                 
+>                                 1.384991
+                                 4,677 - 6,144/month  |  -.3961499   .8406386  
+>   -0.47                                                                      
+>           0.641                                                              
+>                    -2.124107                                                 
+>                                 1.331807
+                                 6,145 - 7,423/month  |  -.5980991   .8047039  
+>   -0.74                                                                      
+>           0.464                                                              
+>                    -2.252192                                                 
+>                                 1.055993
+                                 7,424 - 9,082/month  |  -.4529519    .874969  
+>   -0.52                                                                      
+>           0.609                                                              
+>                    -2.251476                                                 
+>                                 1.345573
+                                9,083 - 10,693/month  |  -.6228902   .7372703  
+>   -0.84                                                                      
+>           0.406                                                              
+>                    -2.138371                                                 
+>                                 .8925906
+                                                      |
+                                                _cons |   5.412545   5.216024  
+>    1.04                                                                      
+>           0.309                                                              
+>                    -5.309147                                                 
+>                                 16.13424
+-------------------------------------------------------------------------------
+----------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+ subzone2014 |       119         119           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 1, now 2
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(384 real changes made)
+WARNING: Singleton observations not dropped; statistical significance is biased
+>  (link)
+(MWFE estimator converged in 1 iterations)
+warning: missing F statistic; dropped variables due to collinearity or too few 
+> clusters
+
+HDFE Linear regression                            Number of obs   =        313
+Absorbing 1 HDFE group                            F(  25,     26) =          .
+Statistics robust to heteroskedasticity           Prob > F        =          .
+                                                  R-squared       =     0.5023
+                                                  Adj R-squared   =     0.0812
+                                                  Within R-sq.    =     0.1476
+Number of clusters (planning_area2014) =         27Root MSE       =     1.0190
+
+                                                              (Std. Err. adjust
+> ed for 27 clusters in planning_area2014)
+-------------------------------------------------------------------------------
+----------------------------------------
+                                                      |               Robust
+                                        pfos_branched |      Coef.   Std. Err. 
+>      t                                                                       
+>           P>|t|                                                              
+>                     [95% Con                                                 
+>                             f. Interval]
+------------------------------------------------------+------------------------
+----------------------------------------
+                        buff500m_transport_facilities |   .0608093   .0480536  
+>    1.27                                                                      
+>           0.217                                                              
+>                    -.0379663                                                 
+>                                  .159585
+                                   age_at_recruitment |  -.0969608   .3450017  
+>   -0.28                                                                      
+>           0.781                                                              
+>                    -.8061219                                                 
+>                                 .6122003
+                                                      |
+            c.age_at_recruitment#c.age_at_recruitment |   .0015148   .0055727  
+>    0.27                                                                      
+>           0.788                                                              
+>                    -.0099401                                                 
+>                                 .0129697
+                                                      |
+                                             employed |
+                                             Working  |   .4818575   .1458318  
+>    3.30                                                                      
+>           0.003                                                              
+>                     .1820959                                                 
+>                                 .7816192
+                                                      |
+                                                 educ |
+Institute of Technical Education ITE/NTC, NITEC, h..  |   .5741739   .4295833  
+>    1.34                                                                      
+>           0.193                                                              
+>                    -.3088473                                                 
+>                                 1.457195
+Junior College/Centralised Institute GCE 'A' Level..  |   .0582311   .4518865  
+>    0.13                                                                      
+>           0.898                                                              
+>                    -.8706349                                                 
+>                                 .9870972
+               Postgraduate Masters degree/Doctorate  |   .1683954   .4198843  
+>    0.40                                                                      
+>           0.692                                                              
+>                    -.6946892                                                 
+>                                  1.03148
+                         Secondary GCE 'O'/'N' Level  |   .4973447   .5327111  
+>    0.93                                                                      
+>           0.359                                                              
+>                    -.5976587                                                 
+>                                 1.592348
+     Trade or work qualification not from University  |  -1.597208   .5609492  
+>   -2.85                                                                      
+>           0.008                                                              
+>                    -2.750256                                                 
+>                                -.4441606
+University Bachelor's Degree/Postgrad Diploma/Prof..  |     .10348   .2963161  
+>    0.35                                                                      
+>           0.730                                                              
+>                    -.5056065                                                 
+>                                 .7125665
+                                                      |
+                                              marital |
+               Married/civil partnership/civil union  |  -.2620949   .3108429  
+>   -0.84                                                                      
+>           0.407                                                              
+>                    -.9010417                                                 
+>                                 .3768518
+                                       Never married  |  -.8183818   .6894232  
+>   -1.19                                                                      
+>           0.246                                                              
+>                    -2.235511                                                 
+>                                 .5987479
+                                           Separated  |   .2542793    .562118  
+>    0.45                                                                      
+>           0.655                                                              
+>                    -.9011707                                                 
+>                                 1.409729
+                                                      |
+                                               ethnic |
+                                              Indian  |  -.8242353   .2443375  
+>   -3.37                                                                      
+>           0.002                                                              
+>                    -1.326478                                                 
+>                                -.3219923
+                                               Malay  |   .2239552   .1691561  
+>    1.32                                                                      
+>           0.197                                                              
+>                    -.1237501                                                 
+>                                 .5716606
+                                                 Mix  |   .4870767   .3294019  
+>    1.48                                                                      
+>           0.151                                                              
+>                    -.1900186                                                 
+>                                 1.164172
+                                                      |
+                                             hhincome |
+                                 1,622 - 3,273/month  |   .3411176   1.090461  
+>    0.31                                                                      
+>           0.757                                                              
+>                    -1.900357                                                 
+>                                 2.582592
+                               10,694 - 13,188/month  |   .5052839   1.218942  
+>    0.41                                                                      
+>           0.682                                                              
+>                    -2.000288                                                 
+>                                 3.010856
+                               13,189 - 16,601/month  |   -.074035   1.247193  
+>   -0.06                                                                      
+>           0.953                                                              
+>                    -2.637676                                                 
+>                                 2.489606
+                                    16,601 and above  |   .7502336   1.164887  
+>    0.64                                                                      
+>           0.525                                                              
+>                    -1.644225                                                 
+>                                 3.144692
+                                 3,274 - 4,676/month  |   .6251209   1.284249  
+>    0.49                                                                      
+>           0.631                                                              
+>                    -2.014691                                                 
+>                                 3.264933
+                                 4,677 - 6,144/month  |   .4224881   1.265909  
+>    0.33                                                                      
+>           0.741                                                              
+>                    -2.179625                                                 
+>                                 3.024601
+                                 6,145 - 7,423/month  |    .043466   1.217209  
+>    0.04                                                                      
+>           0.972                                                              
+>                    -2.458543                                                 
+>                                 2.545475
+                                 7,424 - 9,082/month  |   .1215377   1.264658  
+>    0.10                                                                      
+>           0.924                                                              
+>                    -2.478003                                                 
+>                                 2.721079
+                                9,083 - 10,693/month  |    .063855   1.210478  
+>    0.05                                                                      
+>           0.958                                                              
+>                    -2.424319                                                 
+>                                 2.552029
+                                                      |
+                                                _cons |   2.783688   5.957118  
+>    0.47                                                                      
+>           0.644                                                              
+>                    -9.461343                                                 
+>                                 15.02872
+-------------------------------------------------------------------------------
+----------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+ subzone2014 |       119         119           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 2, now 3
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(384 real changes made)
+WARNING: Singleton observations not dropped; statistical significance is biased
+>  (link)
+(MWFE estimator converged in 1 iterations)
+warning: missing F statistic; dropped variables due to collinearity or too few 
+> clusters
+
+HDFE Linear regression                            Number of obs   =        313
+Absorbing 1 HDFE group                            F(  25,     26) =          .
+Statistics robust to heteroskedasticity           Prob > F        =          .
+                                                  R-squared       =     0.3241
+                                                  Adj R-squared   =    -0.2478
+                                                  Within R-sq.    =     0.0973
+Number of clusters (planning_area2014) =         27Root MSE       =     1.1426
+
+                                                              (Std. Err. adjust
+> ed for 27 clusters in planning_area2014)
+-------------------------------------------------------------------------------
+----------------------------------------
+                                                      |               Robust
+                                          pfoa_linear |      Coef.   Std. Err. 
+>      t                                                                       
+>           P>|t|                                                              
+>                     [95% Con                                                 
+>                             f. Interval]
+------------------------------------------------------+------------------------
+----------------------------------------
+                        buff500m_transport_facilities |   .0280335   .0381116  
+>    0.74                                                                      
+>           0.469                                                              
+>                     -.050306                                                 
+>                                  .106373
+                                   age_at_recruitment |  -.9411302   .8745694  
+>   -1.08                                                                      
+>           0.292                                                              
+>                    -2.738833                                                 
+>                                 .8565729
+                                                      |
+            c.age_at_recruitment#c.age_at_recruitment |   .0142936     .01338  
+>    1.07                                                                      
+>           0.295                                                              
+>                    -.0132093                                                 
+>                                 .0417966
+                                                      |
+                                             employed |
+                                             Working  |  -.7424534   .8386541  
+>   -0.89                                                                      
+>           0.384                                                              
+>                    -2.466332                                                 
+>                                 .9814247
+                                                      |
+                                                 educ |
+Institute of Technical Education ITE/NTC, NITEC, h..  |  -.0455448   .3871601  
+>   -0.12                                                                      
+>           0.907                                                              
+>                    -.8413638                                                 
+>                                 .7502742
+Junior College/Centralised Institute GCE 'A' Level..  |  -.6362236   .2972831  
+>   -2.14                                                                      
+>           0.042                                                              
+>                    -1.247298                                                 
+>                                -.0251494
+               Postgraduate Masters degree/Doctorate  |  -.2910872   .1508396  
+>   -1.93                                                                      
+>           0.065                                                              
+>                    -.6011423                                                 
+>                                  .018968
+                         Secondary GCE 'O'/'N' Level  |  -.1428075    .243671  
+>   -0.59                                                                      
+>           0.563                                                              
+>                    -.6436804                                                 
+>                                 .3580654
+     Trade or work qualification not from University  |   .0793813   .3727456  
+>    0.21                                                                      
+>           0.833                                                              
+>                    -.6868082                                                 
+>                                 .8455708
+University Bachelor's Degree/Postgrad Diploma/Prof..  |  -.0338961   .1243577  
+>   -0.27                                                                      
+>           0.787                                                              
+>                    -.2895169                                                 
+>                                 .2217248
+                                                      |
+                                              marital |
+               Married/civil partnership/civil union  |  -.9826594   .3218057  
+>   -3.05                                                                      
+>           0.005                                                              
+>                     -1.64414                                                 
+>                                -.3211783
+                                       Never married  |    -.97234   .3722626  
+>   -2.61                                                                      
+>           0.015                                                              
+>                    -1.737537                                                 
+>                                -.2071433
+                                           Separated  |  -1.657727   .6938031  
+>   -2.39                                                                      
+>           0.024                                                              
+>                     -3.08386                                                 
+>                                -.2315946
+                                                      |
+                                               ethnic |
+                                              Indian  |  -.2888704   .2184454  
+>   -1.32                                                                      
+>           0.198                                                              
+>                    -.7378912                                                 
+>                                 .1601505
+                                               Malay  |  -.2429515   .2485367  
+>   -0.98                                                                      
+>           0.337                                                              
+>                     -.753826                                                 
+>                                  .267923
+                                                 Mix  |   .0050802   .3090204  
+>    0.02                                                                      
+>           0.987                                                              
+>                    -.6301204                                                 
+>                                 .6402808
+                                                      |
+                                             hhincome |
+                                 1,622 - 3,273/month  |   .4683648   .5111306  
+>    0.92                                                                      
+>           0.368                                                              
+>                    -.5822791                                                 
+>                                 1.519009
+                               10,694 - 13,188/month  |   .9512803   .7135826  
+>    1.33                                                                      
+>           0.194                                                              
+>                    -.5155097                                                 
+>                                  2.41807
+                               13,189 - 16,601/month  |   .7291348   .6196922  
+>    1.18                                                                      
+>           0.250                                                              
+>                    -.5446608                                                 
+>                                  2.00293
+                                    16,601 and above  |   1.026602   .7256753  
+>    1.41                                                                      
+>           0.169                                                              
+>                    -.4650444                                                 
+>                                 2.518249
+                                 3,274 - 4,676/month  |   .5005873   .5961651  
+>    0.84                                                                      
+>           0.409                                                              
+>                    -.7248476                                                 
+>                                 1.726022
+                                 4,677 - 6,144/month  |   .5830525   .5298574  
+>    1.10                                                                      
+>           0.281                                                              
+>                    -.5060849                                                 
+>                                  1.67219
+                                 6,145 - 7,423/month  |    .463296   .6897244  
+>    0.67                                                                      
+>           0.508                                                              
+>                    -.9544529                                                 
+>                                 1.881045
+                                 7,424 - 9,082/month  |   .8438829   .7176749  
+>    1.18                                                                      
+>           0.250                                                              
+>                    -.6313191                                                 
+>                                 2.319085
+                                9,083 - 10,693/month  |   .6564056   .6428544  
+>    1.02                                                                      
+>           0.317                                                              
+>                    -.6650006                                                 
+>                                 1.977812
+                                                      |
+                                                _cons |   17.39278   14.67414  
+>    1.19                                                                      
+>           0.247                                                              
+>                    -12.77034                                                 
+>                                  47.5559
+-------------------------------------------------------------------------------
+----------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+ subzone2014 |       119         119           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 3, now 4
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(358 real changes made)
+WARNING: Singleton observations not dropped; statistical significance is biased
+>  (link)
+(MWFE estimator converged in 1 iterations)
+warning: missing F statistic; dropped variables due to collinearity or too few 
+> clusters
+
+HDFE Linear regression                            Number of obs   =        313
+Absorbing 1 HDFE group                            F(  25,     26) =          .
+Statistics robust to heteroskedasticity           Prob > F        =          .
+                                                  R-squared       =     0.4594
+                                                  Adj R-squared   =     0.0019
+                                                  Within R-sq.    =     0.1210
+Number of clusters (planning_area2014) =         27Root MSE       =     0.9935
+
+                                                              (Std. Err. adjust
+> ed for 27 clusters in planning_area2014)
+-------------------------------------------------------------------------------
+----------------------------------------
+                                                      |               Robust
+                                                 pfna |      Coef.   Std. Err. 
+>      t                                                                       
+>           P>|t|                                                              
+>                     [95% Con                                                 
+>                             f. Interval]
+------------------------------------------------------+------------------------
+----------------------------------------
+                        buff500m_transport_facilities |   .1122647   .0483486  
+>    2.32                                                                      
+>           0.028                                                              
+>                     .0128828                                                 
+>                                 .2116466
+                                   age_at_recruitment |  -.2285194   .3441945  
+>   -0.66                                                                      
+>           0.513                                                              
+>                    -.9360213                                                 
+>                                 .4789825
+                                                      |
+            c.age_at_recruitment#c.age_at_recruitment |   .0031291   .0054792  
+>    0.57                                                                      
+>           0.573                                                              
+>                    -.0081336                                                 
+>                                 .0143918
+                                                      |
+                                             employed |
+                                             Working  |   .4557845   .1960773  
+>    2.32                                                                      
+>           0.028                                                              
+>                     .0527418                                                 
+>                                 .8588272
+                                                      |
+                                                 educ |
+Institute of Technical Education ITE/NTC, NITEC, h..  |   .1546007   .2370864  
+>    0.65                                                                      
+>           0.520                                                              
+>                    -.3327373                                                 
+>                                 .6419387
+Junior College/Centralised Institute GCE 'A' Level..  |   .3291351   .2924729  
+>    1.13                                                                      
+>           0.271                                                              
+>                    -.2720516                                                 
+>                                 .9303218
+               Postgraduate Masters degree/Doctorate  |   -.043132   .2341987  
+>   -0.18                                                                      
+>           0.855                                                              
+>                    -.5245344                                                 
+>                                 .4382704
+                         Secondary GCE 'O'/'N' Level  |  -.2472896   .4185989  
+>   -0.59                                                                      
+>           0.560                                                              
+>                    -1.107732                                                 
+>                                 .6131527
+     Trade or work qualification not from University  |   1.141939   .2609903  
+>    4.38                                                                      
+>           0.000                                                              
+>                     .6054657                                                 
+>                                 1.678412
+University Bachelor's Degree/Postgrad Diploma/Prof..  |  -.0237371   .1757219  
+>   -0.14                                                                      
+>           0.894                                                              
+>                    -.3849386                                                 
+>                                 .3374645
+                                                      |
+                                              marital |
+               Married/civil partnership/civil union  |  -.5098428    .262809  
+>   -1.94                                                                      
+>           0.063                                                              
+>                    -1.050054                                                 
+>                                 .0303689
+                                       Never married  |   .5693419   .9205225  
+>    0.62                                                                      
+>           0.542                                                              
+>                    -1.322819                                                 
+>                                 2.461503
+                                           Separated  |   .2531918   .4584917  
+>    0.55                                                                      
+>           0.586                                                              
+>                    -.6892514                                                 
+>                                 1.195635
+                                                      |
+                                               ethnic |
+                                              Indian  |  -.2453735   .2675666  
+>   -0.92                                                                      
+>           0.368                                                              
+>                    -.7953645                                                 
+>                                 .3046176
+                                               Malay  |  -.1990544   .1754155  
+>   -1.13                                                                      
+>           0.267                                                              
+>                    -.5596262                                                 
+>                                 .1615174
+                                                 Mix  |  -.0062645    .344198  
+>   -0.02                                                                      
+>           0.986                                                              
+>                    -.7137737                                                 
+>                                 .7012447
+                                                      |
+                                             hhincome |
+                                 1,622 - 3,273/month  |   .2664156   .2670649  
+>    1.00                                                                      
+>           0.328                                                              
+>                    -.2825443                                                 
+>                                 .8153754
+                               10,694 - 13,188/month  |   .3313978   .3541418  
+>    0.94                                                                      
+>           0.358                                                              
+>                    -.3965511                                                 
+>                                 1.059347
+                               13,189 - 16,601/month  |   .1703613    .249594  
+>    0.68                                                                      
+>           0.501                                                              
+>                    -.3426865                                                 
+>                                 .6834091
+                                    16,601 and above  |   .4656135   .4977136  
+>    0.94                                                                      
+>           0.358                                                              
+>                    -.5574515                                                 
+>                                 1.488678
+                                 3,274 - 4,676/month  |   .1749424   .2380646  
+>    0.73                                                                      
+>           0.469                                                              
+>                    -.3144064                                                 
+>                                 .6642911
+                                 4,677 - 6,144/month  |   .2359064   .2671721  
+>    0.88                                                                      
+>           0.385                                                              
+>                    -.3132736                                                 
+>                                 .7850864
+                                 6,145 - 7,423/month  |  -.1851507    .305532  
+>   -0.61                                                                      
+>           0.550                                                              
+>                    -.8131806                                                 
+>                                 .4428793
+                                 7,424 - 9,082/month  |   -.069331   .2630948  
+>   -0.26                                                                      
+>           0.794                                                              
+>                    -.6101301                                                 
+>                                 .4714681
+                                9,083 - 10,693/month  |    .054263    .302586  
+>    0.18                                                                      
+>           0.859                                                              
+>                    -.5677113                                                 
+>                                 .6762374
+                                                      |
+                                                _cons |   5.140083   5.426258  
+>    0.95                                                                      
+>           0.352                                                              
+>                    -6.013749                                                 
+>                                 16.29391
+-------------------------------------------------------------------------------
+----------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+ subzone2014 |       119         119           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 4, now 5
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(384 real changes made)
+WARNING: Singleton observations not dropped; statistical significance is biased
+>  (link)
+(MWFE estimator converged in 1 iterations)
+warning: missing F statistic; dropped variables due to collinearity or too few 
+> clusters
+
+HDFE Linear regression                            Number of obs   =        313
+Absorbing 1 HDFE group                            F(  25,     26) =          .
+Statistics robust to heteroskedasticity           Prob > F        =          .
+                                                  R-squared       =     0.5477
+                                                  Adj R-squared   =     0.1649
+                                                  Within R-sq.    =     0.1945
+Number of clusters (planning_area2014) =         27Root MSE       =     0.9445
+
+                                                              (Std. Err. adjust
+> ed for 27 clusters in planning_area2014)
+-------------------------------------------------------------------------------
+----------------------------------------
+                                                      |               Robust
+                                                pfhps |      Coef.   Std. Err. 
+>      t                                                                       
+>           P>|t|                                                              
+>                     [95% Con                                                 
+>                             f. Interval]
+------------------------------------------------------+------------------------
+----------------------------------------
+                        buff500m_transport_facilities |   .0969932   .0406147  
+>    2.39                                                                      
+>           0.024                                                              
+>                     .0135085                                                 
+>                                  .180478
+                                   age_at_recruitment |    .062008   .3025847  
+>    0.20                                                                      
+>           0.839                                                              
+>                    -.5599636                                                 
+>                                 .6839797
+                                                      |
+            c.age_at_recruitment#c.age_at_recruitment |  -.0010681   .0047996  
+>   -0.22                                                                      
+>           0.826                                                              
+>                    -.0109339                                                 
+>                                 .0087977
+                                                      |
+                                             employed |
+                                             Working  |   .5278219   .1444754  
+>    3.65                                                                      
+>           0.001                                                              
+>                     .2308483                                                 
+>                                 .8247954
+                                                      |
+                                                 educ |
+Institute of Technical Education ITE/NTC, NITEC, h..  |   .6554129   .3704914  
+>    1.77                                                                      
+>           0.089                                                              
+>                    -.1061431                                                 
+>                                 1.416969
+Junior College/Centralised Institute GCE 'A' Level..  |   .1265449   .7151753  
+>    0.18                                                                      
+>           0.861                                                              
+>                    -1.343519                                                 
+>                                 1.596609
+               Postgraduate Masters degree/Doctorate  |   .0901534   .3234839  
+>    0.28                                                                      
+>           0.783                                                              
+>                    -.5747772                                                 
+>                                  .755084
+                         Secondary GCE 'O'/'N' Level  |  -.3201941   .4821074  
+>   -0.66                                                                      
+>           0.512                                                              
+>                     -1.31118                                                 
+>                                 .6707918
+     Trade or work qualification not from University  |  -1.376733   .3381339  
+>   -4.07                                                                      
+>           0.000                                                              
+>                    -2.071777                                                 
+>                                 -.681689
+University Bachelor's Degree/Postgrad Diploma/Prof..  |  -.0367224    .239717  
+>   -0.15                                                                      
+>           0.879                                                              
+>                    -.5294677                                                 
+>                                 .4560229
+                                                      |
+                                              marital |
+               Married/civil partnership/civil union  |   -.532839   .2588333  
+>   -2.06                                                                      
+>           0.050                                                              
+>                    -1.064879                                                 
+>                                -.0007994
+                                       Never married  |  -1.319216   .5574191  
+>   -2.37                                                                      
+>           0.026                                                              
+>                    -2.465008                                                 
+>                                -.1734251
+                                           Separated  |   .0682692     .55942  
+>    0.12                                                                      
+>           0.904                                                              
+>                    -1.081635                                                 
+>                                 1.218173
+                                                      |
+                                               ethnic |
+                                              Indian  |  -.9308332   .1693277  
+>   -5.50                                                                      
+>           0.000                                                              
+>                    -1.278891                                                 
+>                                -.5827751
+                                               Malay  |   .0440945   .1863622  
+>    0.24                                                                      
+>           0.815                                                              
+>                    -.3389785                                                 
+>                                 .4271674
+                                                 Mix  |    .556569   .2619445  
+>    2.12                                                                      
+>           0.043                                                              
+>                     .0181344                                                 
+>                                 1.095004
+                                                      |
+                                             hhincome |
+                                 1,622 - 3,273/month  |   1.366959   .9153509  
+>    1.49                                                                      
+>           0.147                                                              
+>                    -.5145719                                                 
+>                                  3.24849
+                               10,694 - 13,188/month  |   1.047716   .9833978  
+>    1.07                                                                      
+>           0.296                                                              
+>                    -.9736875                                                 
+>                                 3.069119
+                               13,189 - 16,601/month  |   .8732468   .9747702  
+>    0.90                                                                      
+>           0.379                                                              
+>                    -1.130422                                                 
+>                                 2.876916
+                                    16,601 and above  |   1.510867    .989933  
+>    1.53                                                                      
+>           0.139                                                              
+>                    -.5239689                                                 
+>                                 3.545704
+                                 3,274 - 4,676/month  |   1.311183   .9706473  
+>    1.35                                                                      
+>           0.188                                                              
+>                    -.6840111                                                 
+>                                 3.306377
+                                 4,677 - 6,144/month  |   1.135832   .9721237  
+>    1.17                                                                      
+>           0.253                                                              
+>                    -.8623968                                                 
+>                                 3.134061
+                                 6,145 - 7,423/month  |   .7696029   .9775355  
+>    0.79                                                                      
+>           0.438                                                              
+>                     -1.23975                                                 
+>                                 2.778956
+                                 7,424 - 9,082/month  |   .6896741   1.019311  
+>    0.68                                                                      
+>           0.505                                                              
+>                    -1.405549                                                 
+>                                 2.784897
+                                9,083 - 10,693/month  |   .7277396   .9342663  
+>    0.78                                                                      
+>           0.443                                                              
+>                    -1.192672                                                 
+>                                 2.648152
+                                                      |
+                                                _cons |    4.52808   5.227429  
+>    0.87                                                                      
+>           0.394                                                              
+>                    -6.217054                                                 
+>                                 15.27321
+-------------------------------------------------------------------------------
+----------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+ subzone2014 |       119         119           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 5, now 6
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(383 real changes made)
+WARNING: Singleton observations not dropped; statistical significance is biased
+>  (link)
+(MWFE estimator converged in 1 iterations)
+warning: missing F statistic; dropped variables due to collinearity or too few 
+> clusters
+
+HDFE Linear regression                            Number of obs   =        313
+Absorbing 1 HDFE group                            F(  25,     26) =          .
+Statistics robust to heteroskedasticity           Prob > F        =          .
+                                                  R-squared       =     0.3727
+                                                  Adj R-squared   =    -0.1581
+                                                  Within R-sq.    =     0.1364
+Number of clusters (planning_area2014) =         27Root MSE       =     0.7500
+
+                                                              (Std. Err. adjust
+> ed for 27 clusters in planning_area2014)
+-------------------------------------------------------------------------------
+----------------------------------------
+                                                      |               Robust
+                                                 pfda |      Coef.   Std. Err. 
+>      t                                                                       
+>           P>|t|                                                              
+>                     [95% Con                                                 
+>                             f. Interval]
+------------------------------------------------------+------------------------
+----------------------------------------
+                        buff500m_transport_facilities |   .0311462   .0218596  
+>    1.42                                                                      
+>           0.166                                                              
+>                    -.0137868                                                 
+>                                 .0760793
+                                   age_at_recruitment |  -.0583047   .3012139  
+>   -0.19                                                                      
+>           0.848                                                              
+>                    -.6774587                                                 
+>                                 .5608492
+                                                      |
+            c.age_at_recruitment#c.age_at_recruitment |   .0006425   .0047213  
+>    0.14                                                                      
+>           0.893                                                              
+>                    -.0090623                                                 
+>                                 .0103472
+                                                      |
+                                             employed |
+                                             Working  |   .0899211   .0979037  
+>    0.92                                                                      
+>           0.367                                                              
+>                    -.1113229                                                 
+>                                 .2911651
+                                                      |
+                                                 educ |
+Institute of Technical Education ITE/NTC, NITEC, h..  |  -.3378504   .2304043  
+>   -1.47                                                                      
+>           0.155                                                              
+>                    -.8114532                                                 
+>                                 .1357525
+Junior College/Centralised Institute GCE 'A' Level..  |  -.0575796   .1939329  
+>   -0.30                                                                      
+>           0.769                                                              
+>                    -.4562144                                                 
+>                                 .3410552
+               Postgraduate Masters degree/Doctorate  |   .0258584   .1172071  
+>    0.22                                                                      
+>           0.827                                                              
+>                    -.2150642                                                 
+>                                  .266781
+                         Secondary GCE 'O'/'N' Level  |   .2280744   .2670937  
+>    0.85                                                                      
+>           0.401                                                              
+>                    -.3209445                                                 
+>                                 .7770934
+     Trade or work qualification not from University  |  -.8917413   .3658318  
+>   -2.44                                                                      
+>           0.022                                                              
+>                    -1.643719                                                 
+>                                -.1397633
+University Bachelor's Degree/Postgrad Diploma/Prof..  |   .0526619   .1354587  
+>    0.39                                                                      
+>           0.701                                                              
+>                    -.2257774                                                 
+>                                 .3311012
+                                                      |
+                                              marital |
+               Married/civil partnership/civil union  |   .0207129    .190691  
+>    0.11                                                                      
+>           0.914                                                              
+>                    -.3712581                                                 
+>                                 .4126839
+                                       Never married  |   .8625207   .8065465  
+>    1.07                                                                      
+>           0.295                                                              
+>                    -.7953594                                                 
+>                                 2.520401
+                                           Separated  |   .1626317   .2858274  
+>    0.57                                                                      
+>           0.574                                                              
+>                    -.4248949                                                 
+>                                 .7501584
+                                                      |
+                                               ethnic |
+                                              Indian  |  -.1143002   .1430805  
+>   -0.80                                                                      
+>           0.432                                                              
+>                    -.4084065                                                 
+>                                  .179806
+                                               Malay  |   .3042679   .1807772  
+>    1.68                                                                      
+>           0.104                                                              
+>                     -.067325                                                 
+>                                 .6758608
+                                                 Mix  |  -.4105918   .2891623  
+>   -1.42                                                                      
+>           0.168                                                              
+>                    -1.004973                                                 
+>                                 .1837898
+                                                      |
+                                             hhincome |
+                                 1,622 - 3,273/month  |  -.0872397   .3558598  
+>   -0.25                                                                      
+>           0.808                                                              
+>                      -.81872                                                 
+>                                 .6442406
+                               10,694 - 13,188/month  |   .2320233    .308971  
+>    0.75                                                                      
+>           0.459                                                              
+>                    -.4030757                                                 
+>                                 .8671224
+                               13,189 - 16,601/month  |  -.1106932   .3781767  
+>   -0.29                                                                      
+>           0.772                                                              
+>                    -.8880466                                                 
+>                                 .6666601
+                                    16,601 and above  |   .7534687   .3248374  
+>    2.32                                                                      
+>           0.028                                                              
+>                     .0857558                                                 
+>                                 1.421181
+                                 3,274 - 4,676/month  |  -.0425383   .3193273  
+>   -0.13                                                                      
+>           0.895                                                              
+>                     -.698925                                                 
+>                                 .6138484
+                                 4,677 - 6,144/month  |   .0710829   .2522998  
+>    0.28                                                                      
+>           0.780                                                              
+>                    -.4475268                                                 
+>                                 .5896925
+                                 6,145 - 7,423/month  |  -.0480516   .3436864  
+>   -0.14                                                                      
+>           0.890                                                              
+>                    -.7545092                                                 
+>                                  .658406
+                                 7,424 - 9,082/month  |   .2647812   .2976716  
+>    0.89                                                                      
+>           0.382                                                              
+>                    -.3470914                                                 
+>                                 .8766539
+                                9,083 - 10,693/month  |   .4781817   .2812867  
+>    1.70                                                                      
+>           0.101                                                              
+>                    -.1000113                                                 
+>                                 1.056375
+                                                      |
+                                                _cons |    1.78277   4.979751  
+>    0.36                                                                      
+>           0.723                                                              
+>                    -8.453254                                                 
+>                                 12.01879
+-------------------------------------------------------------------------------
+----------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+ subzone2014 |       119         119           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 6, now 7
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(384 real changes made)
+WARNING: Singleton observations not dropped; statistical significance is biased
+>  (link)
+(MWFE estimator converged in 1 iterations)
+warning: missing F statistic; dropped variables due to collinearity or too few 
+> clusters
+
+HDFE Linear regression                            Number of obs   =        313
+Absorbing 1 HDFE group                            F(  25,     26) =          .
+Statistics robust to heteroskedasticity           Prob > F        =          .
+                                                  R-squared       =     0.4709
+                                                  Adj R-squared   =     0.0231
+                                                  Within R-sq.    =     0.1218
+Number of clusters (planning_area2014) =         27Root MSE       =     1.0168
+
+                                                              (Std. Err. adjust
+> ed for 27 clusters in planning_area2014)
+-------------------------------------------------------------------------------
+----------------------------------------
+                                                      |               Robust
+                                                pfhpa |      Coef.   Std. Err. 
+>      t                                                                       
+>           P>|t|                                                              
+>                     [95% Con                                                 
+>                             f. Interval]
+------------------------------------------------------+------------------------
+----------------------------------------
+                        buff500m_transport_facilities |   .1237955   .0390253  
+>    3.17                                                                      
+>           0.004                                                              
+>                     .0435779                                                 
+>                                 .2040132
+                                   age_at_recruitment |   .1976435    .323973  
+>    0.61                                                                      
+>           0.547                                                              
+>                    -.4682926                                                 
+>                                 .8635795
+                                                      |
+            c.age_at_recruitment#c.age_at_recruitment |  -.0034311   .0053324  
+>   -0.64                                                                      
+>           0.526                                                              
+>                     -.014392                                                 
+>                                 .0075299
+                                                      |
+                                             employed |
+                                             Working  |  -.1101721   .1928928  
+>   -0.57                                                                      
+>           0.573                                                              
+>                    -.5066689                                                 
+>                                 .2863248
+                                                      |
+                                                 educ |
+Institute of Technical Education ITE/NTC, NITEC, h..  |  -.3272055   .1980072  
+>   -1.65                                                                      
+>           0.110                                                              
+>                     -.734215                                                 
+>                                 .0798041
+Junior College/Centralised Institute GCE 'A' Level..  |   .6392033   .3306618  
+>    1.93                                                                      
+>           0.064                                                              
+>                    -.0404818                                                 
+>                                 1.318888
+               Postgraduate Masters degree/Doctorate  |  -.0884468   .2108764  
+>   -0.42                                                                      
+>           0.678                                                              
+>                    -.5219095                                                 
+>                                 .3450159
+                         Secondary GCE 'O'/'N' Level  |   .5785457   .5907783  
+>    0.98                                                                      
+>           0.336                                                              
+>                    -.6358164                                                 
+>                                 1.792908
+     Trade or work qualification not from University  |  -.4737362   .2935502  
+>   -1.61                                                                      
+>           0.119                                                              
+>                    -1.077137                                                 
+>                                 .1296648
+University Bachelor's Degree/Postgrad Diploma/Prof..  |   .0686831   .2032917  
+>    0.34                                                                      
+>           0.738                                                              
+>                    -.3491891                                                 
+>                                 .4865552
+                                                      |
+                                              marital |
+               Married/civil partnership/civil union  |   .9888064   .2733858  
+>    3.62                                                                      
+>           0.001                                                              
+>                     .4268539                                                 
+>                                 1.550759
+                                       Never married  |   1.578179   .5218382  
+>    3.02                                                                      
+>           0.006                                                              
+>                     .5055256                                                 
+>                                 2.650833
+                                           Separated  |   .8825871   .5305981  
+>    1.66                                                                      
+>           0.108                                                              
+>                    -.2080729                                                 
+>                                 1.973247
+                                                      |
+                                               ethnic |
+                                              Indian  |  -.1934835   .2673238  
+>   -0.72                                                                      
+>           0.476                                                              
+>                    -.7429756                                                 
+>                                 .3560085
+                                               Malay  |   .6411691   .3737353  
+>    1.72                                                                      
+>           0.098                                                              
+>                    -.1270549                                                 
+>                                 1.409393
+                                                 Mix  |  -.3178772   .2993621  
+>   -1.06                                                                      
+>           0.298                                                              
+>                    -.9332249                                                 
+>                                 .2974704
+                                                      |
+                                             hhincome |
+                                 1,622 - 3,273/month  |   .9951784   .2460876  
+>    4.04                                                                      
+>           0.000                                                              
+>                     .4893381                                                 
+>                                 1.501019
+                               10,694 - 13,188/month  |   1.184288   .2691948  
+>    4.40                                                                      
+>           0.000                                                              
+>                       .63095                                                 
+>                                 1.737625
+                               13,189 - 16,601/month  |   .9773143   .3294718  
+>    2.97                                                                      
+>           0.006                                                              
+>                     .3000752                                                 
+>                                 1.654553
+                                    16,601 and above  |   1.097496   .4109856  
+>    2.67                                                                      
+>           0.013                                                              
+>                     .2527032                                                 
+>                                 1.942289
+                                 3,274 - 4,676/month  |   .4694578   .2713331  
+>    1.73                                                                      
+>           0.095                                                              
+>                    -.0882753                                                 
+>                                 1.027191
+                                 4,677 - 6,144/month  |   .6649111   .2575027  
+>    2.58                                                                      
+>           0.016                                                              
+>                     .1356067                                                 
+>                                 1.194216
+                                 6,145 - 7,423/month  |   1.008506   .4080825  
+>    2.47                                                                      
+>           0.020                                                              
+>                       .16968                                                 
+>                                 1.847331
+                                 7,424 - 9,082/month  |   .9097052   .2519547  
+>    3.61                                                                      
+>           0.001                                                              
+>                      .391805                                                 
+>                                 1.427605
+                                9,083 - 10,693/month  |   1.052497   .2579007  
+>    4.08                                                                      
+>           0.000                                                              
+>                     .5223748                                                 
+>                                  1.58262
+                                                      |
+                                                _cons |  -2.956209   4.920471  
+>   -0.60                                                                      
+>           0.553                                                              
+>                    -13.07038                                                 
+>                                 7.157964
+-------------------------------------------------------------------------------
+----------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+ subzone2014 |       119         119           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 7, now 8
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+
+. restore
+
+. 
+. // ==========================================================================
+> ==
+. * ---------------------------------------------------------------------------
+> --
+. tictoc toc
+-------------------------------------------------------------------------------
+----------- Time log -----------
+Start time:  6 Dec 2025 09:55:36
+End time:  6 Dec 2025 09:55:39
+Elapsed seconds:         2
+Elapsed minutes:         0
+Elapsed hours:         0
+-------------------------------------------------------------------------------
+
+. log close
+      name:  <unnamed>
+       log:  \\wsl.localhost\Debian\home\lsys\gusto\scripts\tfpfas\logs/tf-pfas
+> -spresto.smcl
+  log type:  smcl
+ closed on:   6 Dec 2025, 09:55:39
+-------------------------------------------------------------------------------

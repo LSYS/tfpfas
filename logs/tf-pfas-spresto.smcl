@@ -1,0 +1,740 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}\\wsl.localhost\Debian\home\lsys\gusto\scripts\tfpfas\logs/tf-pfas-spresto.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 6 Dec 2025, 09:55:36
+{txt}
+{com}. 
+. * =============================================================================
+. * Program Setup
+. * =============================================================================
+. cls                                     // Clear results window
+{txt}
+{com}. clear all               // Start with a clean slate
+{txt}
+{com}. set more off            // Disable partitioned output
+{txt}
+{com}. macro drop _all         // Clear all macros to avoid namespace conflicts
+{txt}
+{com}. set linesize 120        // Line size limit to make output more readable, affects logs
+{txt}
+{com}. 
+. // Still on version 13 :(
+. version 13              
+{txt}
+{com}. local stata_version : display c(version)
+{res}{txt}
+{com}. 
+. // Add path to ados
+. adopath ++ ./ado                
+{txt}  [1]              "{res}./ado{txt}"
+  [2]              "{res}../../../assets/stata-utils{txt}"
+  [3]  (BASE)      "{res}C:\Program Files (x86)\Stata13\ado\base/{txt}"
+  [4]  (SITE)      "{res}C:\Program Files (x86)\Stata13\ado\site/{txt}"
+  [5]              "{res}.{txt}"
+  [6]  (PERSONAL)  "{res}c:\ado\personal/{txt}"
+  [7]  (PLUS)      "{res}c:\ado\plus/{txt}"
+  [8]  (OLDPLACE)  "{res}c:\ado/{txt}"
+
+{com}. 
+. tictoc tic
+{res}{hline}
+{txt}----------- Time log -----------
+Start time:  6 Dec 2025 09:55:37
+{res}{hline}
+{txt}
+{com}. 
+. use ./data/edc-spresto.dta, clear
+{txt}
+{com}. // ============================================================================
+. * PFAS
+. global pfas pfhxs pfos_linear pfos_branched pfoa_linear pfna pfhps pfda pfhpa 
+{txt}
+{com}. 
+. * Prep basic family demo
+. encode pcv1_working_status, gen(employed)
+{txt}
+{com}. encode pcv1_highest_education_completed, gen(educ)
+{txt}
+{com}. encode pcv1_marital_status, gen(marital)
+{txt}
+{com}. encode ethnic_group, gen(ethnic)
+{txt}
+{com}. encode hhincome_txt, gen(hhincome)
+{txt}
+{com}. 
+. global baselines c.age_at_recruitment##c.age_at_recruitment i.employed i.educ i.marital i.ethnic i.hhincome
+{txt}
+{com}. 
+. // ============================================================================
+. local storespecs_file ./data/pfas-tf-spresto
+{txt}
+{com}. 
+. cap erase `storespecs_file'.dta
+{txt}
+{com}. local x buff500m_transport_facilities
+{txt}
+{com}. preserve
+{txt}
+{com}. qui su `x'
+{txt}
+{com}. replace `x' = `x' / r(sd) if !missing(`x')
+{txt}(531 real changes made)
+
+{com}. 
+. foreach pfas of global pfas {c -(}
+{txt}  2{com}.         qui su `pfas'
+{txt}  3{com}.         replace `pfas' = `pfas' / r(sd) if !missing(`pfas')
+{txt}  4{com}.         reghdfe `pfas' `x' $baselines, abs(subzone2014) cluster(planning_area2014) keepsing
+{txt}  5{com}.         storespecs `x', spec_name(`pfas') file(`storespecs_file')
+{txt}  6{com}. {c )-}
+{txt}(384 real changes made)
+{res}{err}WARNING: Singleton observations not dropped; statistical significance is biased {browse "http://scorreia.com/reghdfe/nested_within_cluster.pdf":(link)}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 1 iterations)
+{res}{txt}warning: missing F statistic; dropped variables due to collinearity or too few clusters
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       313
+{txt}Absorbing 1 HDFE group{col 51}{help j_robustsingular##|_new:F(  25,     26)}{col 67}=          {res}.
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}=          {res}.
+{txt}{col 51}R-squared{col 67}= {res}    0.7742
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5832
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.2572
+{txt}{col 1}Number of clusters ({res}planning_area2014{txt}) {col 30}= {res}        27{txt}{col 51}Root MSE{col 67}= {res}    0.7013
+
+{txt}{ralign 119:(Std. Err. adjusted for {res:27} clusters in planning_area2014)}
+{hline 54}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 55}{c |}{col 67}    Robust
+{col 1}                                                pfhxs{col 55}{c |}      Coef.{col 67}   Std. Err.{col 79}      t{col 87}   P>|t|{col 95}     [95% Con{col 108}f. Interval]
+{hline 54}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 24}buff500m_transport_facilities {c |}{col 55}{res}{space 2} .0376407{col 67}{space 2} .0287351{col 78}{space 1}    1.31{col 87}{space 3}0.202{col 95}{space 4}-.0214252{col 108}{space 3} .0967066
+{txt}{space 35}age_at_recruitment {c |}{col 55}{res}{space 2} .1823725{col 67}{space 2} .3082483{col 78}{space 1}    0.59{col 87}{space 3}0.559{col 95}{space 4}-.4512409{col 108}{space 3} .8159858
+{txt}{space 53} {c |}
+{space 12}c.age_at_recruitment#c.age_at_recruitment {c |}{col 55}{res}{space 2}-.0028081{col 67}{space 2} .0049402{col 78}{space 1}   -0.57{col 87}{space 3}0.575{col 95}{space 4}-.0129629{col 108}{space 3} .0073468
+{txt}{space 53} {c |}
+{space 45}employed {c |}
+{space 45}Working  {c |}{col 55}{res}{space 2} .2581198{col 67}{space 2} .1120604{col 78}{space 1}    2.30{col 87}{space 3}0.030{col 95}{space 4} .0277764{col 108}{space 3} .4884632
+{txt}{space 53} {c |}
+{space 49}educ {c |}
+Institute of Technical Education ITE/NTC, NITEC, h..  {c |}{col 55}{res}{space 2} .6377905{col 67}{space 2}  .349373{col 78}{space 1}    1.83{col 87}{space 3}0.079{col 95}{space 4}-.0803561{col 108}{space 3} 1.355937
+{txt}Junior College/Centralised Institute GCE 'A' Level..  {c |}{col 55}{res}{space 2} .3692983{col 67}{space 2} .1715651{col 78}{space 1}    2.15{col 87}{space 3}0.041{col 95}{space 4} .0166411{col 108}{space 3} .7219554
+{txt}{space 15}Postgraduate Masters degree/Doctorate  {c |}{col 55}{res}{space 2} .2128909{col 67}{space 2} .2403967{col 78}{space 1}    0.89{col 87}{space 3}0.384{col 95}{space 4}-.2812515{col 108}{space 3} .7070334
+{txt}{space 25}Secondary GCE 'O'/'N' Level  {c |}{col 55}{res}{space 2}-.4162745{col 67}{space 2}  .548011{col 78}{space 1}   -0.76{col 87}{space 3}0.454{col 95}{space 4}-1.542727{col 108}{space 3} .7101782
+{txt}{space 5}Trade or work qualification not from University  {c |}{col 55}{res}{space 2} -1.22306{col 67}{space 2} .2791256{col 78}{space 1}   -4.38{col 87}{space 3}0.000{col 95}{space 4}-1.796811{col 108}{space 3}-.6493092
+{txt}University Bachelor's Degree/Postgrad Diploma/Prof..  {c |}{col 55}{res}{space 2}  -.01238{col 67}{space 2}  .137819{col 78}{space 1}   -0.09{col 87}{space 3}0.929{col 95}{space 4} -.295671{col 108}{space 3} .2709109
+{txt}{space 53} {c |}
+{space 46}marital {c |}
+{space 15}Married/civil partnership/civil union  {c |}{col 55}{res}{space 2} .1319542{col 67}{space 2} .2055076{col 78}{space 1}    0.64{col 87}{space 3}0.526{col 95}{space 4}-.2904728{col 108}{space 3} .5543811
+{txt}{space 39}Never married  {c |}{col 55}{res}{space 2}-.0118303{col 67}{space 2}  .340816{col 78}{space 1}   -0.03{col 87}{space 3}0.973{col 95}{space 4}-.7123876{col 108}{space 3}  .688727
+{txt}{space 43}Separated  {c |}{col 55}{res}{space 2} .7084292{col 67}{space 2} .3179481{col 78}{space 1}    2.23{col 87}{space 3}0.035{col 95}{space 4} .0548775{col 108}{space 3} 1.361981
+{txt}{space 53} {c |}
+{space 47}ethnic {c |}
+{space 46}Indian  {c |}{col 55}{res}{space 2}-.3240837{col 67}{space 2} .1854227{col 78}{space 1}   -1.75{col 87}{space 3}0.092{col 95}{space 4}-.7052254{col 108}{space 3} .0570581
+{txt}{space 47}Malay  {c |}{col 55}{res}{space 2} .2957507{col 67}{space 2} .1564391{col 78}{space 1}    1.89{col 87}{space 3}0.070{col 95}{space 4}-.0258144{col 108}{space 3} .6173158
+{txt}{space 49}Mix  {c |}{col 55}{res}{space 2} .4400099{col 67}{space 2} .3739358{col 78}{space 1}    1.18{col 87}{space 3}0.250{col 95}{space 4}-.3286261{col 108}{space 3} 1.208646
+{txt}{space 53} {c |}
+{space 45}hhincome {c |}
+{space 33}1,622 - 3,273/month  {c |}{col 55}{res}{space 2} 2.509124{col 67}{space 2} 1.821819{col 78}{space 1}    1.38{col 87}{space 3}0.180{col 95}{space 4}-1.235679{col 108}{space 3} 6.253927
+{txt}{space 31}10,694 - 13,188/month  {c |}{col 55}{res}{space 2} 2.626927{col 67}{space 2} 1.909403{col 78}{space 1}    1.38{col 87}{space 3}0.181{col 95}{space 4}-1.297907{col 108}{space 3} 6.551762
+{txt}{space 31}13,189 - 16,601/month  {c |}{col 55}{res}{space 2}  2.64543{col 67}{space 2} 1.901464{col 78}{space 1}    1.39{col 87}{space 3}0.176{col 95}{space 4}-1.263085{col 108}{space 3} 6.553945
+{txt}{space 36}16,601 and above  {c |}{col 55}{res}{space 2} 3.018504{col 67}{space 2} 1.822292{col 78}{space 1}    1.66{col 87}{space 3}0.110{col 95}{space 4}-.7272698{col 108}{space 3} 6.764278
+{txt}{space 33}3,274 - 4,676/month  {c |}{col 55}{res}{space 2} 2.565353{col 67}{space 2} 1.961397{col 78}{space 1}    1.31{col 87}{space 3}0.202{col 95}{space 4}-1.466357{col 108}{space 3} 6.597063
+{txt}{space 33}4,677 - 6,144/month  {c |}{col 55}{res}{space 2} 2.879868{col 67}{space 2} 1.951746{col 78}{space 1}    1.48{col 87}{space 3}0.152{col 95}{space 4}-1.132003{col 108}{space 3} 6.891739
+{txt}{space 33}6,145 - 7,423/month  {c |}{col 55}{res}{space 2} 2.599617{col 67}{space 2} 1.976159{col 78}{space 1}    1.32{col 87}{space 3}0.200{col 95}{space 4}-1.462437{col 108}{space 3} 6.661671
+{txt}{space 33}7,424 - 9,082/month  {c |}{col 55}{res}{space 2} 2.421553{col 67}{space 2} 1.977557{col 78}{space 1}    1.22{col 87}{space 3}0.232{col 95}{space 4}-1.643372{col 108}{space 3} 6.486479
+{txt}{space 32}9,083 - 10,693/month  {c |}{col 55}{res}{space 2} 2.745775{col 67}{space 2} 1.979111{col 78}{space 1}    1.39{col 87}{space 3}0.177{col 95}{space 4}-1.322347{col 108}{space 3} 6.813896
+{txt}{space 53} {c |}
+{space 48}_cons {c |}{col 55}{res}{space 2}-4.742555{col 67}{space 2} 6.134979{col 78}{space 1}   -0.77{col 87}{space 3}0.446{col 95}{space 4}-17.35319{col 108}{space 3} 7.868075
+{txt}{hline 54}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text} subzone2014{col 14}{c |}{space 1}      119{col 27}{space 1}      119{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 0, now 1
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(note: file ./data/pfas-tf-spresto.dta not found)
+file ./data/pfas-tf-spresto.dta saved
+(384 real changes made)
+{res}{err}WARNING: Singleton observations not dropped; statistical significance is biased {browse "http://scorreia.com/reghdfe/nested_within_cluster.pdf":(link)}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 1 iterations)
+{res}{txt}warning: missing F statistic; dropped variables due to collinearity or too few clusters
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       313
+{txt}Absorbing 1 HDFE group{col 51}{help j_robustsingular##|_new:F(  25,     26)}{col 67}=          {res}.
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}=          {res}.
+{txt}{col 51}R-squared{col 67}= {res}    0.5092
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.0940
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.1861
+{txt}{col 1}Number of clusters ({res}planning_area2014{txt}) {col 30}= {res}        27{txt}{col 51}Root MSE{col 67}= {res}    0.9986
+
+{txt}{ralign 119:(Std. Err. adjusted for {res:27} clusters in planning_area2014)}
+{hline 54}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 55}{c |}{col 67}    Robust
+{col 1}                                          pfos_linear{col 55}{c |}      Coef.{col 67}   Std. Err.{col 79}      t{col 87}   P>|t|{col 95}     [95% Con{col 108}f. Interval]
+{hline 54}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 24}buff500m_transport_facilities {c |}{col 55}{res}{space 2} .1004377{col 67}{space 2} .0362602{col 78}{space 1}    2.77{col 87}{space 3}0.010{col 95}{space 4} .0259037{col 108}{space 3} .1749717
+{txt}{space 35}age_at_recruitment {c |}{col 55}{res}{space 2}-.1747194{col 67}{space 2} .3113376{col 78}{space 1}   -0.56{col 87}{space 3}0.579{col 95}{space 4}-.8146831{col 108}{space 3} .4652443
+{txt}{space 53} {c |}
+{space 12}c.age_at_recruitment#c.age_at_recruitment {c |}{col 55}{res}{space 2} .0026519{col 67}{space 2}  .004923{col 78}{space 1}    0.54{col 87}{space 3}0.595{col 95}{space 4}-.0074675{col 108}{space 3} .0127713
+{txt}{space 53} {c |}
+{space 45}employed {c |}
+{space 45}Working  {c |}{col 55}{res}{space 2} .4587959{col 67}{space 2} .1664593{col 78}{space 1}    2.76{col 87}{space 3}0.011{col 95}{space 4}  .116634{col 108}{space 3} .8009579
+{txt}{space 53} {c |}
+{space 49}educ {c |}
+Institute of Technical Education ITE/NTC, NITEC, h..  {c |}{col 55}{res}{space 2} .4823922{col 67}{space 2} .3706548{col 78}{space 1}    1.30{col 87}{space 3}0.205{col 95}{space 4}-.2794997{col 108}{space 3} 1.244284
+{txt}Junior College/Centralised Institute GCE 'A' Level..  {c |}{col 55}{res}{space 2} -.395345{col 67}{space 2} .4761576{col 78}{space 1}   -0.83{col 87}{space 3}0.414{col 95}{space 4}-1.374101{col 108}{space 3} .5834109
+{txt}{space 15}Postgraduate Masters degree/Doctorate  {c |}{col 55}{res}{space 2}-.0030203{col 67}{space 2} .2303659{col 78}{space 1}   -0.01{col 87}{space 3}0.990{col 95}{space 4}-.4765441{col 108}{space 3} .4705035
+{txt}{space 25}Secondary GCE 'O'/'N' Level  {c |}{col 55}{res}{space 2}-.0564205{col 67}{space 2} .3911015{col 78}{space 1}   -0.14{col 87}{space 3}0.886{col 95}{space 4}-.8603412{col 108}{space 3} .7475001
+{txt}{space 5}Trade or work qualification not from University  {c |}{col 55}{res}{space 2}-1.645428{col 67}{space 2} .2872103{col 78}{space 1}   -5.73{col 87}{space 3}0.000{col 95}{space 4}-2.235798{col 108}{space 3}-1.055059
+{txt}University Bachelor's Degree/Postgrad Diploma/Prof..  {c |}{col 55}{res}{space 2} -.018921{col 67}{space 2} .2264767{col 78}{space 1}   -0.08{col 87}{space 3}0.934{col 95}{space 4}-.4844506{col 108}{space 3} .4466085
+{txt}{space 53} {c |}
+{space 46}marital {c |}
+{space 15}Married/civil partnership/civil union  {c |}{col 55}{res}{space 2}-.7514109{col 67}{space 2}  .330784{col 78}{space 1}   -2.27{col 87}{space 3}0.032{col 95}{space 4}-1.431347{col 108}{space 3}-.0714746
+{txt}{space 39}Never married  {c |}{col 55}{res}{space 2}-1.208579{col 67}{space 2} .6194988{col 78}{space 1}   -1.95{col 87}{space 3}0.062{col 95}{space 4}-2.481977{col 108}{space 3} .0648191
+{txt}{space 43}Separated  {c |}{col 55}{res}{space 2}-.6926042{col 67}{space 2}  .663915{col 78}{space 1}   -1.04{col 87}{space 3}0.306{col 95}{space 4}-2.057301{col 108}{space 3} .6720926
+{txt}{space 53} {c |}
+{space 47}ethnic {c |}
+{space 46}Indian  {c |}{col 55}{res}{space 2}-1.400036{col 67}{space 2} .3800403{col 78}{space 1}   -3.68{col 87}{space 3}0.001{col 95}{space 4} -2.18122{col 108}{space 3}-.6188519
+{txt}{space 47}Malay  {c |}{col 55}{res}{space 2} .1596157{col 67}{space 2} .2526792{col 78}{space 1}    0.63{col 87}{space 3}0.533{col 95}{space 4}-.3597739{col 108}{space 3} .6790053
+{txt}{space 49}Mix  {c |}{col 55}{res}{space 2}-.0150611{col 67}{space 2} .2362114{col 78}{space 1}   -0.06{col 87}{space 3}0.950{col 95}{space 4}-.5006006{col 108}{space 3} .4704783
+{txt}{space 53} {c |}
+{space 45}hhincome {c |}
+{space 33}1,622 - 3,273/month  {c |}{col 55}{res}{space 2}-.5881246{col 67}{space 2}  .718065{col 78}{space 1}   -0.82{col 87}{space 3}0.420{col 95}{space 4}-2.064128{col 108}{space 3} .8878791
+{txt}{space 31}10,694 - 13,188/month  {c |}{col 55}{res}{space 2}-.4602625{col 67}{space 2} .8037647{col 78}{space 1}   -0.57{col 87}{space 3}0.572{col 95}{space 4}-2.112424{col 108}{space 3}   1.1919
+{txt}{space 31}13,189 - 16,601/month  {c |}{col 55}{res}{space 2}-.7413634{col 67}{space 2} .8512425{col 78}{space 1}   -0.87{col 87}{space 3}0.392{col 95}{space 4}-2.491117{col 108}{space 3} 1.008391
+{txt}{space 36}16,601 and above  {c |}{col 55}{res}{space 2}-.0545417{col 67}{space 2} .7600454{col 78}{space 1}   -0.07{col 87}{space 3}0.943{col 95}{space 4}-1.616837{col 108}{space 3} 1.507754
+{txt}{space 33}3,274 - 4,676/month  {c |}{col 55}{res}{space 2} -.316723{col 67}{space 2} .8278715{col 78}{space 1}   -0.38{col 87}{space 3}0.705{col 95}{space 4}-2.018437{col 108}{space 3} 1.384991
+{txt}{space 33}4,677 - 6,144/month  {c |}{col 55}{res}{space 2}-.3961499{col 67}{space 2} .8406386{col 78}{space 1}   -0.47{col 87}{space 3}0.641{col 95}{space 4}-2.124107{col 108}{space 3} 1.331807
+{txt}{space 33}6,145 - 7,423/month  {c |}{col 55}{res}{space 2}-.5980991{col 67}{space 2} .8047039{col 78}{space 1}   -0.74{col 87}{space 3}0.464{col 95}{space 4}-2.252192{col 108}{space 3} 1.055993
+{txt}{space 33}7,424 - 9,082/month  {c |}{col 55}{res}{space 2}-.4529519{col 67}{space 2}  .874969{col 78}{space 1}   -0.52{col 87}{space 3}0.609{col 95}{space 4}-2.251476{col 108}{space 3} 1.345573
+{txt}{space 32}9,083 - 10,693/month  {c |}{col 55}{res}{space 2}-.6228902{col 67}{space 2} .7372703{col 78}{space 1}   -0.84{col 87}{space 3}0.406{col 95}{space 4}-2.138371{col 108}{space 3} .8925906
+{txt}{space 53} {c |}
+{space 48}_cons {c |}{col 55}{res}{space 2} 5.412545{col 67}{space 2} 5.216024{col 78}{space 1}    1.04{col 87}{space 3}0.309{col 95}{space 4}-5.309147{col 108}{space 3} 16.13424
+{txt}{hline 54}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text} subzone2014{col 14}{c |}{space 1}      119{col 27}{space 1}      119{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 1, now 2
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(384 real changes made)
+{res}{err}WARNING: Singleton observations not dropped; statistical significance is biased {browse "http://scorreia.com/reghdfe/nested_within_cluster.pdf":(link)}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 1 iterations)
+{res}{txt}warning: missing F statistic; dropped variables due to collinearity or too few clusters
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       313
+{txt}Absorbing 1 HDFE group{col 51}{help j_robustsingular##|_new:F(  25,     26)}{col 67}=          {res}.
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}=          {res}.
+{txt}{col 51}R-squared{col 67}= {res}    0.5023
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.0812
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.1476
+{txt}{col 1}Number of clusters ({res}planning_area2014{txt}) {col 30}= {res}        27{txt}{col 51}Root MSE{col 67}= {res}    1.0190
+
+{txt}{ralign 119:(Std. Err. adjusted for {res:27} clusters in planning_area2014)}
+{hline 54}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 55}{c |}{col 67}    Robust
+{col 1}                                        pfos_branched{col 55}{c |}      Coef.{col 67}   Std. Err.{col 79}      t{col 87}   P>|t|{col 95}     [95% Con{col 108}f. Interval]
+{hline 54}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 24}buff500m_transport_facilities {c |}{col 55}{res}{space 2} .0608093{col 67}{space 2} .0480536{col 78}{space 1}    1.27{col 87}{space 3}0.217{col 95}{space 4}-.0379663{col 108}{space 3}  .159585
+{txt}{space 35}age_at_recruitment {c |}{col 55}{res}{space 2}-.0969608{col 67}{space 2} .3450017{col 78}{space 1}   -0.28{col 87}{space 3}0.781{col 95}{space 4}-.8061219{col 108}{space 3} .6122003
+{txt}{space 53} {c |}
+{space 12}c.age_at_recruitment#c.age_at_recruitment {c |}{col 55}{res}{space 2} .0015148{col 67}{space 2} .0055727{col 78}{space 1}    0.27{col 87}{space 3}0.788{col 95}{space 4}-.0099401{col 108}{space 3} .0129697
+{txt}{space 53} {c |}
+{space 45}employed {c |}
+{space 45}Working  {c |}{col 55}{res}{space 2} .4818575{col 67}{space 2} .1458318{col 78}{space 1}    3.30{col 87}{space 3}0.003{col 95}{space 4} .1820959{col 108}{space 3} .7816192
+{txt}{space 53} {c |}
+{space 49}educ {c |}
+Institute of Technical Education ITE/NTC, NITEC, h..  {c |}{col 55}{res}{space 2} .5741739{col 67}{space 2} .4295833{col 78}{space 1}    1.34{col 87}{space 3}0.193{col 95}{space 4}-.3088473{col 108}{space 3} 1.457195
+{txt}Junior College/Centralised Institute GCE 'A' Level..  {c |}{col 55}{res}{space 2} .0582311{col 67}{space 2} .4518865{col 78}{space 1}    0.13{col 87}{space 3}0.898{col 95}{space 4}-.8706349{col 108}{space 3} .9870972
+{txt}{space 15}Postgraduate Masters degree/Doctorate  {c |}{col 55}{res}{space 2} .1683954{col 67}{space 2} .4198843{col 78}{space 1}    0.40{col 87}{space 3}0.692{col 95}{space 4}-.6946892{col 108}{space 3}  1.03148
+{txt}{space 25}Secondary GCE 'O'/'N' Level  {c |}{col 55}{res}{space 2} .4973447{col 67}{space 2} .5327111{col 78}{space 1}    0.93{col 87}{space 3}0.359{col 95}{space 4}-.5976587{col 108}{space 3} 1.592348
+{txt}{space 5}Trade or work qualification not from University  {c |}{col 55}{res}{space 2}-1.597208{col 67}{space 2} .5609492{col 78}{space 1}   -2.85{col 87}{space 3}0.008{col 95}{space 4}-2.750256{col 108}{space 3}-.4441606
+{txt}University Bachelor's Degree/Postgrad Diploma/Prof..  {c |}{col 55}{res}{space 2}   .10348{col 67}{space 2} .2963161{col 78}{space 1}    0.35{col 87}{space 3}0.730{col 95}{space 4}-.5056065{col 108}{space 3} .7125665
+{txt}{space 53} {c |}
+{space 46}marital {c |}
+{space 15}Married/civil partnership/civil union  {c |}{col 55}{res}{space 2}-.2620949{col 67}{space 2} .3108429{col 78}{space 1}   -0.84{col 87}{space 3}0.407{col 95}{space 4}-.9010417{col 108}{space 3} .3768518
+{txt}{space 39}Never married  {c |}{col 55}{res}{space 2}-.8183818{col 67}{space 2} .6894232{col 78}{space 1}   -1.19{col 87}{space 3}0.246{col 95}{space 4}-2.235511{col 108}{space 3} .5987479
+{txt}{space 43}Separated  {c |}{col 55}{res}{space 2} .2542793{col 67}{space 2}  .562118{col 78}{space 1}    0.45{col 87}{space 3}0.655{col 95}{space 4}-.9011707{col 108}{space 3} 1.409729
+{txt}{space 53} {c |}
+{space 47}ethnic {c |}
+{space 46}Indian  {c |}{col 55}{res}{space 2}-.8242353{col 67}{space 2} .2443375{col 78}{space 1}   -3.37{col 87}{space 3}0.002{col 95}{space 4}-1.326478{col 108}{space 3}-.3219923
+{txt}{space 47}Malay  {c |}{col 55}{res}{space 2} .2239552{col 67}{space 2} .1691561{col 78}{space 1}    1.32{col 87}{space 3}0.197{col 95}{space 4}-.1237501{col 108}{space 3} .5716606
+{txt}{space 49}Mix  {c |}{col 55}{res}{space 2} .4870767{col 67}{space 2} .3294019{col 78}{space 1}    1.48{col 87}{space 3}0.151{col 95}{space 4}-.1900186{col 108}{space 3} 1.164172
+{txt}{space 53} {c |}
+{space 45}hhincome {c |}
+{space 33}1,622 - 3,273/month  {c |}{col 55}{res}{space 2} .3411176{col 67}{space 2} 1.090461{col 78}{space 1}    0.31{col 87}{space 3}0.757{col 95}{space 4}-1.900357{col 108}{space 3} 2.582592
+{txt}{space 31}10,694 - 13,188/month  {c |}{col 55}{res}{space 2} .5052839{col 67}{space 2} 1.218942{col 78}{space 1}    0.41{col 87}{space 3}0.682{col 95}{space 4}-2.000288{col 108}{space 3} 3.010856
+{txt}{space 31}13,189 - 16,601/month  {c |}{col 55}{res}{space 2} -.074035{col 67}{space 2} 1.247193{col 78}{space 1}   -0.06{col 87}{space 3}0.953{col 95}{space 4}-2.637676{col 108}{space 3} 2.489606
+{txt}{space 36}16,601 and above  {c |}{col 55}{res}{space 2} .7502336{col 67}{space 2} 1.164887{col 78}{space 1}    0.64{col 87}{space 3}0.525{col 95}{space 4}-1.644225{col 108}{space 3} 3.144692
+{txt}{space 33}3,274 - 4,676/month  {c |}{col 55}{res}{space 2} .6251209{col 67}{space 2} 1.284249{col 78}{space 1}    0.49{col 87}{space 3}0.631{col 95}{space 4}-2.014691{col 108}{space 3} 3.264933
+{txt}{space 33}4,677 - 6,144/month  {c |}{col 55}{res}{space 2} .4224881{col 67}{space 2} 1.265909{col 78}{space 1}    0.33{col 87}{space 3}0.741{col 95}{space 4}-2.179625{col 108}{space 3} 3.024601
+{txt}{space 33}6,145 - 7,423/month  {c |}{col 55}{res}{space 2}  .043466{col 67}{space 2} 1.217209{col 78}{space 1}    0.04{col 87}{space 3}0.972{col 95}{space 4}-2.458543{col 108}{space 3} 2.545475
+{txt}{space 33}7,424 - 9,082/month  {c |}{col 55}{res}{space 2} .1215377{col 67}{space 2} 1.264658{col 78}{space 1}    0.10{col 87}{space 3}0.924{col 95}{space 4}-2.478003{col 108}{space 3} 2.721079
+{txt}{space 32}9,083 - 10,693/month  {c |}{col 55}{res}{space 2}  .063855{col 67}{space 2} 1.210478{col 78}{space 1}    0.05{col 87}{space 3}0.958{col 95}{space 4}-2.424319{col 108}{space 3} 2.552029
+{txt}{space 53} {c |}
+{space 48}_cons {c |}{col 55}{res}{space 2} 2.783688{col 67}{space 2} 5.957118{col 78}{space 1}    0.47{col 87}{space 3}0.644{col 95}{space 4}-9.461343{col 108}{space 3} 15.02872
+{txt}{hline 54}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text} subzone2014{col 14}{c |}{space 1}      119{col 27}{space 1}      119{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 2, now 3
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(384 real changes made)
+{res}{err}WARNING: Singleton observations not dropped; statistical significance is biased {browse "http://scorreia.com/reghdfe/nested_within_cluster.pdf":(link)}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 1 iterations)
+{res}{txt}warning: missing F statistic; dropped variables due to collinearity or too few clusters
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       313
+{txt}Absorbing 1 HDFE group{col 51}{help j_robustsingular##|_new:F(  25,     26)}{col 67}=          {res}.
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}=          {res}.
+{txt}{col 51}R-squared{col 67}= {res}    0.3241
+{txt}{col 51}Adj R-squared{col 67}= {res}   -0.2478
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0973
+{txt}{col 1}Number of clusters ({res}planning_area2014{txt}) {col 30}= {res}        27{txt}{col 51}Root MSE{col 67}= {res}    1.1426
+
+{txt}{ralign 119:(Std. Err. adjusted for {res:27} clusters in planning_area2014)}
+{hline 54}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 55}{c |}{col 67}    Robust
+{col 1}                                          pfoa_linear{col 55}{c |}      Coef.{col 67}   Std. Err.{col 79}      t{col 87}   P>|t|{col 95}     [95% Con{col 108}f. Interval]
+{hline 54}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 24}buff500m_transport_facilities {c |}{col 55}{res}{space 2} .0280335{col 67}{space 2} .0381116{col 78}{space 1}    0.74{col 87}{space 3}0.469{col 95}{space 4} -.050306{col 108}{space 3}  .106373
+{txt}{space 35}age_at_recruitment {c |}{col 55}{res}{space 2}-.9411302{col 67}{space 2} .8745694{col 78}{space 1}   -1.08{col 87}{space 3}0.292{col 95}{space 4}-2.738833{col 108}{space 3} .8565729
+{txt}{space 53} {c |}
+{space 12}c.age_at_recruitment#c.age_at_recruitment {c |}{col 55}{res}{space 2} .0142936{col 67}{space 2}   .01338{col 78}{space 1}    1.07{col 87}{space 3}0.295{col 95}{space 4}-.0132093{col 108}{space 3} .0417966
+{txt}{space 53} {c |}
+{space 45}employed {c |}
+{space 45}Working  {c |}{col 55}{res}{space 2}-.7424534{col 67}{space 2} .8386541{col 78}{space 1}   -0.89{col 87}{space 3}0.384{col 95}{space 4}-2.466332{col 108}{space 3} .9814247
+{txt}{space 53} {c |}
+{space 49}educ {c |}
+Institute of Technical Education ITE/NTC, NITEC, h..  {c |}{col 55}{res}{space 2}-.0455448{col 67}{space 2} .3871601{col 78}{space 1}   -0.12{col 87}{space 3}0.907{col 95}{space 4}-.8413638{col 108}{space 3} .7502742
+{txt}Junior College/Centralised Institute GCE 'A' Level..  {c |}{col 55}{res}{space 2}-.6362236{col 67}{space 2} .2972831{col 78}{space 1}   -2.14{col 87}{space 3}0.042{col 95}{space 4}-1.247298{col 108}{space 3}-.0251494
+{txt}{space 15}Postgraduate Masters degree/Doctorate  {c |}{col 55}{res}{space 2}-.2910872{col 67}{space 2} .1508396{col 78}{space 1}   -1.93{col 87}{space 3}0.065{col 95}{space 4}-.6011423{col 108}{space 3}  .018968
+{txt}{space 25}Secondary GCE 'O'/'N' Level  {c |}{col 55}{res}{space 2}-.1428075{col 67}{space 2}  .243671{col 78}{space 1}   -0.59{col 87}{space 3}0.563{col 95}{space 4}-.6436804{col 108}{space 3} .3580654
+{txt}{space 5}Trade or work qualification not from University  {c |}{col 55}{res}{space 2} .0793813{col 67}{space 2} .3727456{col 78}{space 1}    0.21{col 87}{space 3}0.833{col 95}{space 4}-.6868082{col 108}{space 3} .8455708
+{txt}University Bachelor's Degree/Postgrad Diploma/Prof..  {c |}{col 55}{res}{space 2}-.0338961{col 67}{space 2} .1243577{col 78}{space 1}   -0.27{col 87}{space 3}0.787{col 95}{space 4}-.2895169{col 108}{space 3} .2217248
+{txt}{space 53} {c |}
+{space 46}marital {c |}
+{space 15}Married/civil partnership/civil union  {c |}{col 55}{res}{space 2}-.9826594{col 67}{space 2} .3218057{col 78}{space 1}   -3.05{col 87}{space 3}0.005{col 95}{space 4} -1.64414{col 108}{space 3}-.3211783
+{txt}{space 39}Never married  {c |}{col 55}{res}{space 2}  -.97234{col 67}{space 2} .3722626{col 78}{space 1}   -2.61{col 87}{space 3}0.015{col 95}{space 4}-1.737537{col 108}{space 3}-.2071433
+{txt}{space 43}Separated  {c |}{col 55}{res}{space 2}-1.657727{col 67}{space 2} .6938031{col 78}{space 1}   -2.39{col 87}{space 3}0.024{col 95}{space 4} -3.08386{col 108}{space 3}-.2315946
+{txt}{space 53} {c |}
+{space 47}ethnic {c |}
+{space 46}Indian  {c |}{col 55}{res}{space 2}-.2888704{col 67}{space 2} .2184454{col 78}{space 1}   -1.32{col 87}{space 3}0.198{col 95}{space 4}-.7378912{col 108}{space 3} .1601505
+{txt}{space 47}Malay  {c |}{col 55}{res}{space 2}-.2429515{col 67}{space 2} .2485367{col 78}{space 1}   -0.98{col 87}{space 3}0.337{col 95}{space 4} -.753826{col 108}{space 3}  .267923
+{txt}{space 49}Mix  {c |}{col 55}{res}{space 2} .0050802{col 67}{space 2} .3090204{col 78}{space 1}    0.02{col 87}{space 3}0.987{col 95}{space 4}-.6301204{col 108}{space 3} .6402808
+{txt}{space 53} {c |}
+{space 45}hhincome {c |}
+{space 33}1,622 - 3,273/month  {c |}{col 55}{res}{space 2} .4683648{col 67}{space 2} .5111306{col 78}{space 1}    0.92{col 87}{space 3}0.368{col 95}{space 4}-.5822791{col 108}{space 3} 1.519009
+{txt}{space 31}10,694 - 13,188/month  {c |}{col 55}{res}{space 2} .9512803{col 67}{space 2} .7135826{col 78}{space 1}    1.33{col 87}{space 3}0.194{col 95}{space 4}-.5155097{col 108}{space 3}  2.41807
+{txt}{space 31}13,189 - 16,601/month  {c |}{col 55}{res}{space 2} .7291348{col 67}{space 2} .6196922{col 78}{space 1}    1.18{col 87}{space 3}0.250{col 95}{space 4}-.5446608{col 108}{space 3}  2.00293
+{txt}{space 36}16,601 and above  {c |}{col 55}{res}{space 2} 1.026602{col 67}{space 2} .7256753{col 78}{space 1}    1.41{col 87}{space 3}0.169{col 95}{space 4}-.4650444{col 108}{space 3} 2.518249
+{txt}{space 33}3,274 - 4,676/month  {c |}{col 55}{res}{space 2} .5005873{col 67}{space 2} .5961651{col 78}{space 1}    0.84{col 87}{space 3}0.409{col 95}{space 4}-.7248476{col 108}{space 3} 1.726022
+{txt}{space 33}4,677 - 6,144/month  {c |}{col 55}{res}{space 2} .5830525{col 67}{space 2} .5298574{col 78}{space 1}    1.10{col 87}{space 3}0.281{col 95}{space 4}-.5060849{col 108}{space 3}  1.67219
+{txt}{space 33}6,145 - 7,423/month  {c |}{col 55}{res}{space 2}  .463296{col 67}{space 2} .6897244{col 78}{space 1}    0.67{col 87}{space 3}0.508{col 95}{space 4}-.9544529{col 108}{space 3} 1.881045
+{txt}{space 33}7,424 - 9,082/month  {c |}{col 55}{res}{space 2} .8438829{col 67}{space 2} .7176749{col 78}{space 1}    1.18{col 87}{space 3}0.250{col 95}{space 4}-.6313191{col 108}{space 3} 2.319085
+{txt}{space 32}9,083 - 10,693/month  {c |}{col 55}{res}{space 2} .6564056{col 67}{space 2} .6428544{col 78}{space 1}    1.02{col 87}{space 3}0.317{col 95}{space 4}-.6650006{col 108}{space 3} 1.977812
+{txt}{space 53} {c |}
+{space 48}_cons {c |}{col 55}{res}{space 2} 17.39278{col 67}{space 2} 14.67414{col 78}{space 1}    1.19{col 87}{space 3}0.247{col 95}{space 4}-12.77034{col 108}{space 3}  47.5559
+{txt}{hline 54}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text} subzone2014{col 14}{c |}{space 1}      119{col 27}{space 1}      119{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 3, now 4
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(358 real changes made)
+{res}{err}WARNING: Singleton observations not dropped; statistical significance is biased {browse "http://scorreia.com/reghdfe/nested_within_cluster.pdf":(link)}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 1 iterations)
+{res}{txt}warning: missing F statistic; dropped variables due to collinearity or too few clusters
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       313
+{txt}Absorbing 1 HDFE group{col 51}{help j_robustsingular##|_new:F(  25,     26)}{col 67}=          {res}.
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}=          {res}.
+{txt}{col 51}R-squared{col 67}= {res}    0.4594
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.0019
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.1210
+{txt}{col 1}Number of clusters ({res}planning_area2014{txt}) {col 30}= {res}        27{txt}{col 51}Root MSE{col 67}= {res}    0.9935
+
+{txt}{ralign 119:(Std. Err. adjusted for {res:27} clusters in planning_area2014)}
+{hline 54}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 55}{c |}{col 67}    Robust
+{col 1}                                                 pfna{col 55}{c |}      Coef.{col 67}   Std. Err.{col 79}      t{col 87}   P>|t|{col 95}     [95% Con{col 108}f. Interval]
+{hline 54}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 24}buff500m_transport_facilities {c |}{col 55}{res}{space 2} .1122647{col 67}{space 2} .0483486{col 78}{space 1}    2.32{col 87}{space 3}0.028{col 95}{space 4} .0128828{col 108}{space 3} .2116466
+{txt}{space 35}age_at_recruitment {c |}{col 55}{res}{space 2}-.2285194{col 67}{space 2} .3441945{col 78}{space 1}   -0.66{col 87}{space 3}0.513{col 95}{space 4}-.9360213{col 108}{space 3} .4789825
+{txt}{space 53} {c |}
+{space 12}c.age_at_recruitment#c.age_at_recruitment {c |}{col 55}{res}{space 2} .0031291{col 67}{space 2} .0054792{col 78}{space 1}    0.57{col 87}{space 3}0.573{col 95}{space 4}-.0081336{col 108}{space 3} .0143918
+{txt}{space 53} {c |}
+{space 45}employed {c |}
+{space 45}Working  {c |}{col 55}{res}{space 2} .4557845{col 67}{space 2} .1960773{col 78}{space 1}    2.32{col 87}{space 3}0.028{col 95}{space 4} .0527418{col 108}{space 3} .8588272
+{txt}{space 53} {c |}
+{space 49}educ {c |}
+Institute of Technical Education ITE/NTC, NITEC, h..  {c |}{col 55}{res}{space 2} .1546007{col 67}{space 2} .2370864{col 78}{space 1}    0.65{col 87}{space 3}0.520{col 95}{space 4}-.3327373{col 108}{space 3} .6419387
+{txt}Junior College/Centralised Institute GCE 'A' Level..  {c |}{col 55}{res}{space 2} .3291351{col 67}{space 2} .2924729{col 78}{space 1}    1.13{col 87}{space 3}0.271{col 95}{space 4}-.2720516{col 108}{space 3} .9303218
+{txt}{space 15}Postgraduate Masters degree/Doctorate  {c |}{col 55}{res}{space 2} -.043132{col 67}{space 2} .2341987{col 78}{space 1}   -0.18{col 87}{space 3}0.855{col 95}{space 4}-.5245344{col 108}{space 3} .4382704
+{txt}{space 25}Secondary GCE 'O'/'N' Level  {c |}{col 55}{res}{space 2}-.2472896{col 67}{space 2} .4185989{col 78}{space 1}   -0.59{col 87}{space 3}0.560{col 95}{space 4}-1.107732{col 108}{space 3} .6131527
+{txt}{space 5}Trade or work qualification not from University  {c |}{col 55}{res}{space 2} 1.141939{col 67}{space 2} .2609903{col 78}{space 1}    4.38{col 87}{space 3}0.000{col 95}{space 4} .6054657{col 108}{space 3} 1.678412
+{txt}University Bachelor's Degree/Postgrad Diploma/Prof..  {c |}{col 55}{res}{space 2}-.0237371{col 67}{space 2} .1757219{col 78}{space 1}   -0.14{col 87}{space 3}0.894{col 95}{space 4}-.3849386{col 108}{space 3} .3374645
+{txt}{space 53} {c |}
+{space 46}marital {c |}
+{space 15}Married/civil partnership/civil union  {c |}{col 55}{res}{space 2}-.5098428{col 67}{space 2}  .262809{col 78}{space 1}   -1.94{col 87}{space 3}0.063{col 95}{space 4}-1.050054{col 108}{space 3} .0303689
+{txt}{space 39}Never married  {c |}{col 55}{res}{space 2} .5693419{col 67}{space 2} .9205225{col 78}{space 1}    0.62{col 87}{space 3}0.542{col 95}{space 4}-1.322819{col 108}{space 3} 2.461503
+{txt}{space 43}Separated  {c |}{col 55}{res}{space 2} .2531918{col 67}{space 2} .4584917{col 78}{space 1}    0.55{col 87}{space 3}0.586{col 95}{space 4}-.6892514{col 108}{space 3} 1.195635
+{txt}{space 53} {c |}
+{space 47}ethnic {c |}
+{space 46}Indian  {c |}{col 55}{res}{space 2}-.2453735{col 67}{space 2} .2675666{col 78}{space 1}   -0.92{col 87}{space 3}0.368{col 95}{space 4}-.7953645{col 108}{space 3} .3046176
+{txt}{space 47}Malay  {c |}{col 55}{res}{space 2}-.1990544{col 67}{space 2} .1754155{col 78}{space 1}   -1.13{col 87}{space 3}0.267{col 95}{space 4}-.5596262{col 108}{space 3} .1615174
+{txt}{space 49}Mix  {c |}{col 55}{res}{space 2}-.0062645{col 67}{space 2}  .344198{col 78}{space 1}   -0.02{col 87}{space 3}0.986{col 95}{space 4}-.7137737{col 108}{space 3} .7012447
+{txt}{space 53} {c |}
+{space 45}hhincome {c |}
+{space 33}1,622 - 3,273/month  {c |}{col 55}{res}{space 2} .2664156{col 67}{space 2} .2670649{col 78}{space 1}    1.00{col 87}{space 3}0.328{col 95}{space 4}-.2825443{col 108}{space 3} .8153754
+{txt}{space 31}10,694 - 13,188/month  {c |}{col 55}{res}{space 2} .3313978{col 67}{space 2} .3541418{col 78}{space 1}    0.94{col 87}{space 3}0.358{col 95}{space 4}-.3965511{col 108}{space 3} 1.059347
+{txt}{space 31}13,189 - 16,601/month  {c |}{col 55}{res}{space 2} .1703613{col 67}{space 2}  .249594{col 78}{space 1}    0.68{col 87}{space 3}0.501{col 95}{space 4}-.3426865{col 108}{space 3} .6834091
+{txt}{space 36}16,601 and above  {c |}{col 55}{res}{space 2} .4656135{col 67}{space 2} .4977136{col 78}{space 1}    0.94{col 87}{space 3}0.358{col 95}{space 4}-.5574515{col 108}{space 3} 1.488678
+{txt}{space 33}3,274 - 4,676/month  {c |}{col 55}{res}{space 2} .1749424{col 67}{space 2} .2380646{col 78}{space 1}    0.73{col 87}{space 3}0.469{col 95}{space 4}-.3144064{col 108}{space 3} .6642911
+{txt}{space 33}4,677 - 6,144/month  {c |}{col 55}{res}{space 2} .2359064{col 67}{space 2} .2671721{col 78}{space 1}    0.88{col 87}{space 3}0.385{col 95}{space 4}-.3132736{col 108}{space 3} .7850864
+{txt}{space 33}6,145 - 7,423/month  {c |}{col 55}{res}{space 2}-.1851507{col 67}{space 2}  .305532{col 78}{space 1}   -0.61{col 87}{space 3}0.550{col 95}{space 4}-.8131806{col 108}{space 3} .4428793
+{txt}{space 33}7,424 - 9,082/month  {c |}{col 55}{res}{space 2} -.069331{col 67}{space 2} .2630948{col 78}{space 1}   -0.26{col 87}{space 3}0.794{col 95}{space 4}-.6101301{col 108}{space 3} .4714681
+{txt}{space 32}9,083 - 10,693/month  {c |}{col 55}{res}{space 2}  .054263{col 67}{space 2}  .302586{col 78}{space 1}    0.18{col 87}{space 3}0.859{col 95}{space 4}-.5677113{col 108}{space 3} .6762374
+{txt}{space 53} {c |}
+{space 48}_cons {c |}{col 55}{res}{space 2} 5.140083{col 67}{space 2} 5.426258{col 78}{space 1}    0.95{col 87}{space 3}0.352{col 95}{space 4}-6.013749{col 108}{space 3} 16.29391
+{txt}{hline 54}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text} subzone2014{col 14}{c |}{space 1}      119{col 27}{space 1}      119{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 4, now 5
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(384 real changes made)
+{res}{err}WARNING: Singleton observations not dropped; statistical significance is biased {browse "http://scorreia.com/reghdfe/nested_within_cluster.pdf":(link)}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 1 iterations)
+{res}{txt}warning: missing F statistic; dropped variables due to collinearity or too few clusters
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       313
+{txt}Absorbing 1 HDFE group{col 51}{help j_robustsingular##|_new:F(  25,     26)}{col 67}=          {res}.
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}=          {res}.
+{txt}{col 51}R-squared{col 67}= {res}    0.5477
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.1649
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.1945
+{txt}{col 1}Number of clusters ({res}planning_area2014{txt}) {col 30}= {res}        27{txt}{col 51}Root MSE{col 67}= {res}    0.9445
+
+{txt}{ralign 119:(Std. Err. adjusted for {res:27} clusters in planning_area2014)}
+{hline 54}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 55}{c |}{col 67}    Robust
+{col 1}                                                pfhps{col 55}{c |}      Coef.{col 67}   Std. Err.{col 79}      t{col 87}   P>|t|{col 95}     [95% Con{col 108}f. Interval]
+{hline 54}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 24}buff500m_transport_facilities {c |}{col 55}{res}{space 2} .0969932{col 67}{space 2} .0406147{col 78}{space 1}    2.39{col 87}{space 3}0.024{col 95}{space 4} .0135085{col 108}{space 3}  .180478
+{txt}{space 35}age_at_recruitment {c |}{col 55}{res}{space 2}  .062008{col 67}{space 2} .3025847{col 78}{space 1}    0.20{col 87}{space 3}0.839{col 95}{space 4}-.5599636{col 108}{space 3} .6839797
+{txt}{space 53} {c |}
+{space 12}c.age_at_recruitment#c.age_at_recruitment {c |}{col 55}{res}{space 2}-.0010681{col 67}{space 2} .0047996{col 78}{space 1}   -0.22{col 87}{space 3}0.826{col 95}{space 4}-.0109339{col 108}{space 3} .0087977
+{txt}{space 53} {c |}
+{space 45}employed {c |}
+{space 45}Working  {c |}{col 55}{res}{space 2} .5278219{col 67}{space 2} .1444754{col 78}{space 1}    3.65{col 87}{space 3}0.001{col 95}{space 4} .2308483{col 108}{space 3} .8247954
+{txt}{space 53} {c |}
+{space 49}educ {c |}
+Institute of Technical Education ITE/NTC, NITEC, h..  {c |}{col 55}{res}{space 2} .6554129{col 67}{space 2} .3704914{col 78}{space 1}    1.77{col 87}{space 3}0.089{col 95}{space 4}-.1061431{col 108}{space 3} 1.416969
+{txt}Junior College/Centralised Institute GCE 'A' Level..  {c |}{col 55}{res}{space 2} .1265449{col 67}{space 2} .7151753{col 78}{space 1}    0.18{col 87}{space 3}0.861{col 95}{space 4}-1.343519{col 108}{space 3} 1.596609
+{txt}{space 15}Postgraduate Masters degree/Doctorate  {c |}{col 55}{res}{space 2} .0901534{col 67}{space 2} .3234839{col 78}{space 1}    0.28{col 87}{space 3}0.783{col 95}{space 4}-.5747772{col 108}{space 3}  .755084
+{txt}{space 25}Secondary GCE 'O'/'N' Level  {c |}{col 55}{res}{space 2}-.3201941{col 67}{space 2} .4821074{col 78}{space 1}   -0.66{col 87}{space 3}0.512{col 95}{space 4} -1.31118{col 108}{space 3} .6707918
+{txt}{space 5}Trade or work qualification not from University  {c |}{col 55}{res}{space 2}-1.376733{col 67}{space 2} .3381339{col 78}{space 1}   -4.07{col 87}{space 3}0.000{col 95}{space 4}-2.071777{col 108}{space 3} -.681689
+{txt}University Bachelor's Degree/Postgrad Diploma/Prof..  {c |}{col 55}{res}{space 2}-.0367224{col 67}{space 2}  .239717{col 78}{space 1}   -0.15{col 87}{space 3}0.879{col 95}{space 4}-.5294677{col 108}{space 3} .4560229
+{txt}{space 53} {c |}
+{space 46}marital {c |}
+{space 15}Married/civil partnership/civil union  {c |}{col 55}{res}{space 2} -.532839{col 67}{space 2} .2588333{col 78}{space 1}   -2.06{col 87}{space 3}0.050{col 95}{space 4}-1.064879{col 108}{space 3}-.0007994
+{txt}{space 39}Never married  {c |}{col 55}{res}{space 2}-1.319216{col 67}{space 2} .5574191{col 78}{space 1}   -2.37{col 87}{space 3}0.026{col 95}{space 4}-2.465008{col 108}{space 3}-.1734251
+{txt}{space 43}Separated  {c |}{col 55}{res}{space 2} .0682692{col 67}{space 2}   .55942{col 78}{space 1}    0.12{col 87}{space 3}0.904{col 95}{space 4}-1.081635{col 108}{space 3} 1.218173
+{txt}{space 53} {c |}
+{space 47}ethnic {c |}
+{space 46}Indian  {c |}{col 55}{res}{space 2}-.9308332{col 67}{space 2} .1693277{col 78}{space 1}   -5.50{col 87}{space 3}0.000{col 95}{space 4}-1.278891{col 108}{space 3}-.5827751
+{txt}{space 47}Malay  {c |}{col 55}{res}{space 2} .0440945{col 67}{space 2} .1863622{col 78}{space 1}    0.24{col 87}{space 3}0.815{col 95}{space 4}-.3389785{col 108}{space 3} .4271674
+{txt}{space 49}Mix  {c |}{col 55}{res}{space 2}  .556569{col 67}{space 2} .2619445{col 78}{space 1}    2.12{col 87}{space 3}0.043{col 95}{space 4} .0181344{col 108}{space 3} 1.095004
+{txt}{space 53} {c |}
+{space 45}hhincome {c |}
+{space 33}1,622 - 3,273/month  {c |}{col 55}{res}{space 2} 1.366959{col 67}{space 2} .9153509{col 78}{space 1}    1.49{col 87}{space 3}0.147{col 95}{space 4}-.5145719{col 108}{space 3}  3.24849
+{txt}{space 31}10,694 - 13,188/month  {c |}{col 55}{res}{space 2} 1.047716{col 67}{space 2} .9833978{col 78}{space 1}    1.07{col 87}{space 3}0.296{col 95}{space 4}-.9736875{col 108}{space 3} 3.069119
+{txt}{space 31}13,189 - 16,601/month  {c |}{col 55}{res}{space 2} .8732468{col 67}{space 2} .9747702{col 78}{space 1}    0.90{col 87}{space 3}0.379{col 95}{space 4}-1.130422{col 108}{space 3} 2.876916
+{txt}{space 36}16,601 and above  {c |}{col 55}{res}{space 2} 1.510867{col 67}{space 2}  .989933{col 78}{space 1}    1.53{col 87}{space 3}0.139{col 95}{space 4}-.5239689{col 108}{space 3} 3.545704
+{txt}{space 33}3,274 - 4,676/month  {c |}{col 55}{res}{space 2} 1.311183{col 67}{space 2} .9706473{col 78}{space 1}    1.35{col 87}{space 3}0.188{col 95}{space 4}-.6840111{col 108}{space 3} 3.306377
+{txt}{space 33}4,677 - 6,144/month  {c |}{col 55}{res}{space 2} 1.135832{col 67}{space 2} .9721237{col 78}{space 1}    1.17{col 87}{space 3}0.253{col 95}{space 4}-.8623968{col 108}{space 3} 3.134061
+{txt}{space 33}6,145 - 7,423/month  {c |}{col 55}{res}{space 2} .7696029{col 67}{space 2} .9775355{col 78}{space 1}    0.79{col 87}{space 3}0.438{col 95}{space 4} -1.23975{col 108}{space 3} 2.778956
+{txt}{space 33}7,424 - 9,082/month  {c |}{col 55}{res}{space 2} .6896741{col 67}{space 2} 1.019311{col 78}{space 1}    0.68{col 87}{space 3}0.505{col 95}{space 4}-1.405549{col 108}{space 3} 2.784897
+{txt}{space 32}9,083 - 10,693/month  {c |}{col 55}{res}{space 2} .7277396{col 67}{space 2} .9342663{col 78}{space 1}    0.78{col 87}{space 3}0.443{col 95}{space 4}-1.192672{col 108}{space 3} 2.648152
+{txt}{space 53} {c |}
+{space 48}_cons {c |}{col 55}{res}{space 2}  4.52808{col 67}{space 2} 5.227429{col 78}{space 1}    0.87{col 87}{space 3}0.394{col 95}{space 4}-6.217054{col 108}{space 3} 15.27321
+{txt}{hline 54}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text} subzone2014{col 14}{c |}{space 1}      119{col 27}{space 1}      119{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 5, now 6
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(383 real changes made)
+{res}{err}WARNING: Singleton observations not dropped; statistical significance is biased {browse "http://scorreia.com/reghdfe/nested_within_cluster.pdf":(link)}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 1 iterations)
+{res}{txt}warning: missing F statistic; dropped variables due to collinearity or too few clusters
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       313
+{txt}Absorbing 1 HDFE group{col 51}{help j_robustsingular##|_new:F(  25,     26)}{col 67}=          {res}.
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}=          {res}.
+{txt}{col 51}R-squared{col 67}= {res}    0.3727
+{txt}{col 51}Adj R-squared{col 67}= {res}   -0.1581
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.1364
+{txt}{col 1}Number of clusters ({res}planning_area2014{txt}) {col 30}= {res}        27{txt}{col 51}Root MSE{col 67}= {res}    0.7500
+
+{txt}{ralign 119:(Std. Err. adjusted for {res:27} clusters in planning_area2014)}
+{hline 54}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 55}{c |}{col 67}    Robust
+{col 1}                                                 pfda{col 55}{c |}      Coef.{col 67}   Std. Err.{col 79}      t{col 87}   P>|t|{col 95}     [95% Con{col 108}f. Interval]
+{hline 54}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 24}buff500m_transport_facilities {c |}{col 55}{res}{space 2} .0311462{col 67}{space 2} .0218596{col 78}{space 1}    1.42{col 87}{space 3}0.166{col 95}{space 4}-.0137868{col 108}{space 3} .0760793
+{txt}{space 35}age_at_recruitment {c |}{col 55}{res}{space 2}-.0583047{col 67}{space 2} .3012139{col 78}{space 1}   -0.19{col 87}{space 3}0.848{col 95}{space 4}-.6774587{col 108}{space 3} .5608492
+{txt}{space 53} {c |}
+{space 12}c.age_at_recruitment#c.age_at_recruitment {c |}{col 55}{res}{space 2} .0006425{col 67}{space 2} .0047213{col 78}{space 1}    0.14{col 87}{space 3}0.893{col 95}{space 4}-.0090623{col 108}{space 3} .0103472
+{txt}{space 53} {c |}
+{space 45}employed {c |}
+{space 45}Working  {c |}{col 55}{res}{space 2} .0899211{col 67}{space 2} .0979037{col 78}{space 1}    0.92{col 87}{space 3}0.367{col 95}{space 4}-.1113229{col 108}{space 3} .2911651
+{txt}{space 53} {c |}
+{space 49}educ {c |}
+Institute of Technical Education ITE/NTC, NITEC, h..  {c |}{col 55}{res}{space 2}-.3378504{col 67}{space 2} .2304043{col 78}{space 1}   -1.47{col 87}{space 3}0.155{col 95}{space 4}-.8114532{col 108}{space 3} .1357525
+{txt}Junior College/Centralised Institute GCE 'A' Level..  {c |}{col 55}{res}{space 2}-.0575796{col 67}{space 2} .1939329{col 78}{space 1}   -0.30{col 87}{space 3}0.769{col 95}{space 4}-.4562144{col 108}{space 3} .3410552
+{txt}{space 15}Postgraduate Masters degree/Doctorate  {c |}{col 55}{res}{space 2} .0258584{col 67}{space 2} .1172071{col 78}{space 1}    0.22{col 87}{space 3}0.827{col 95}{space 4}-.2150642{col 108}{space 3}  .266781
+{txt}{space 25}Secondary GCE 'O'/'N' Level  {c |}{col 55}{res}{space 2} .2280744{col 67}{space 2} .2670937{col 78}{space 1}    0.85{col 87}{space 3}0.401{col 95}{space 4}-.3209445{col 108}{space 3} .7770934
+{txt}{space 5}Trade or work qualification not from University  {c |}{col 55}{res}{space 2}-.8917413{col 67}{space 2} .3658318{col 78}{space 1}   -2.44{col 87}{space 3}0.022{col 95}{space 4}-1.643719{col 108}{space 3}-.1397633
+{txt}University Bachelor's Degree/Postgrad Diploma/Prof..  {c |}{col 55}{res}{space 2} .0526619{col 67}{space 2} .1354587{col 78}{space 1}    0.39{col 87}{space 3}0.701{col 95}{space 4}-.2257774{col 108}{space 3} .3311012
+{txt}{space 53} {c |}
+{space 46}marital {c |}
+{space 15}Married/civil partnership/civil union  {c |}{col 55}{res}{space 2} .0207129{col 67}{space 2}  .190691{col 78}{space 1}    0.11{col 87}{space 3}0.914{col 95}{space 4}-.3712581{col 108}{space 3} .4126839
+{txt}{space 39}Never married  {c |}{col 55}{res}{space 2} .8625207{col 67}{space 2} .8065465{col 78}{space 1}    1.07{col 87}{space 3}0.295{col 95}{space 4}-.7953594{col 108}{space 3} 2.520401
+{txt}{space 43}Separated  {c |}{col 55}{res}{space 2} .1626317{col 67}{space 2} .2858274{col 78}{space 1}    0.57{col 87}{space 3}0.574{col 95}{space 4}-.4248949{col 108}{space 3} .7501584
+{txt}{space 53} {c |}
+{space 47}ethnic {c |}
+{space 46}Indian  {c |}{col 55}{res}{space 2}-.1143002{col 67}{space 2} .1430805{col 78}{space 1}   -0.80{col 87}{space 3}0.432{col 95}{space 4}-.4084065{col 108}{space 3}  .179806
+{txt}{space 47}Malay  {c |}{col 55}{res}{space 2} .3042679{col 67}{space 2} .1807772{col 78}{space 1}    1.68{col 87}{space 3}0.104{col 95}{space 4} -.067325{col 108}{space 3} .6758608
+{txt}{space 49}Mix  {c |}{col 55}{res}{space 2}-.4105918{col 67}{space 2} .2891623{col 78}{space 1}   -1.42{col 87}{space 3}0.168{col 95}{space 4}-1.004973{col 108}{space 3} .1837898
+{txt}{space 53} {c |}
+{space 45}hhincome {c |}
+{space 33}1,622 - 3,273/month  {c |}{col 55}{res}{space 2}-.0872397{col 67}{space 2} .3558598{col 78}{space 1}   -0.25{col 87}{space 3}0.808{col 95}{space 4}  -.81872{col 108}{space 3} .6442406
+{txt}{space 31}10,694 - 13,188/month  {c |}{col 55}{res}{space 2} .2320233{col 67}{space 2}  .308971{col 78}{space 1}    0.75{col 87}{space 3}0.459{col 95}{space 4}-.4030757{col 108}{space 3} .8671224
+{txt}{space 31}13,189 - 16,601/month  {c |}{col 55}{res}{space 2}-.1106932{col 67}{space 2} .3781767{col 78}{space 1}   -0.29{col 87}{space 3}0.772{col 95}{space 4}-.8880466{col 108}{space 3} .6666601
+{txt}{space 36}16,601 and above  {c |}{col 55}{res}{space 2} .7534687{col 67}{space 2} .3248374{col 78}{space 1}    2.32{col 87}{space 3}0.028{col 95}{space 4} .0857558{col 108}{space 3} 1.421181
+{txt}{space 33}3,274 - 4,676/month  {c |}{col 55}{res}{space 2}-.0425383{col 67}{space 2} .3193273{col 78}{space 1}   -0.13{col 87}{space 3}0.895{col 95}{space 4} -.698925{col 108}{space 3} .6138484
+{txt}{space 33}4,677 - 6,144/month  {c |}{col 55}{res}{space 2} .0710829{col 67}{space 2} .2522998{col 78}{space 1}    0.28{col 87}{space 3}0.780{col 95}{space 4}-.4475268{col 108}{space 3} .5896925
+{txt}{space 33}6,145 - 7,423/month  {c |}{col 55}{res}{space 2}-.0480516{col 67}{space 2} .3436864{col 78}{space 1}   -0.14{col 87}{space 3}0.890{col 95}{space 4}-.7545092{col 108}{space 3}  .658406
+{txt}{space 33}7,424 - 9,082/month  {c |}{col 55}{res}{space 2} .2647812{col 67}{space 2} .2976716{col 78}{space 1}    0.89{col 87}{space 3}0.382{col 95}{space 4}-.3470914{col 108}{space 3} .8766539
+{txt}{space 32}9,083 - 10,693/month  {c |}{col 55}{res}{space 2} .4781817{col 67}{space 2} .2812867{col 78}{space 1}    1.70{col 87}{space 3}0.101{col 95}{space 4}-.1000113{col 108}{space 3} 1.056375
+{txt}{space 53} {c |}
+{space 48}_cons {c |}{col 55}{res}{space 2}  1.78277{col 67}{space 2} 4.979751{col 78}{space 1}    0.36{col 87}{space 3}0.723{col 95}{space 4}-8.453254{col 108}{space 3} 12.01879
+{txt}{hline 54}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text} subzone2014{col 14}{c |}{space 1}      119{col 27}{space 1}      119{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 6, now 7
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+(384 real changes made)
+{res}{err}WARNING: Singleton observations not dropped; statistical significance is biased {browse "http://scorreia.com/reghdfe/nested_within_cluster.pdf":(link)}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 1 iterations)
+{res}{txt}warning: missing F statistic; dropped variables due to collinearity or too few clusters
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       313
+{txt}Absorbing 1 HDFE group{col 51}{help j_robustsingular##|_new:F(  25,     26)}{col 67}=          {res}.
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}=          {res}.
+{txt}{col 51}R-squared{col 67}= {res}    0.4709
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.0231
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.1218
+{txt}{col 1}Number of clusters ({res}planning_area2014{txt}) {col 30}= {res}        27{txt}{col 51}Root MSE{col 67}= {res}    1.0168
+
+{txt}{ralign 119:(Std. Err. adjusted for {res:27} clusters in planning_area2014)}
+{hline 54}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 55}{c |}{col 67}    Robust
+{col 1}                                                pfhpa{col 55}{c |}      Coef.{col 67}   Std. Err.{col 79}      t{col 87}   P>|t|{col 95}     [95% Con{col 108}f. Interval]
+{hline 54}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 24}buff500m_transport_facilities {c |}{col 55}{res}{space 2} .1237955{col 67}{space 2} .0390253{col 78}{space 1}    3.17{col 87}{space 3}0.004{col 95}{space 4} .0435779{col 108}{space 3} .2040132
+{txt}{space 35}age_at_recruitment {c |}{col 55}{res}{space 2} .1976435{col 67}{space 2}  .323973{col 78}{space 1}    0.61{col 87}{space 3}0.547{col 95}{space 4}-.4682926{col 108}{space 3} .8635795
+{txt}{space 53} {c |}
+{space 12}c.age_at_recruitment#c.age_at_recruitment {c |}{col 55}{res}{space 2}-.0034311{col 67}{space 2} .0053324{col 78}{space 1}   -0.64{col 87}{space 3}0.526{col 95}{space 4} -.014392{col 108}{space 3} .0075299
+{txt}{space 53} {c |}
+{space 45}employed {c |}
+{space 45}Working  {c |}{col 55}{res}{space 2}-.1101721{col 67}{space 2} .1928928{col 78}{space 1}   -0.57{col 87}{space 3}0.573{col 95}{space 4}-.5066689{col 108}{space 3} .2863248
+{txt}{space 53} {c |}
+{space 49}educ {c |}
+Institute of Technical Education ITE/NTC, NITEC, h..  {c |}{col 55}{res}{space 2}-.3272055{col 67}{space 2} .1980072{col 78}{space 1}   -1.65{col 87}{space 3}0.110{col 95}{space 4} -.734215{col 108}{space 3} .0798041
+{txt}Junior College/Centralised Institute GCE 'A' Level..  {c |}{col 55}{res}{space 2} .6392033{col 67}{space 2} .3306618{col 78}{space 1}    1.93{col 87}{space 3}0.064{col 95}{space 4}-.0404818{col 108}{space 3} 1.318888
+{txt}{space 15}Postgraduate Masters degree/Doctorate  {c |}{col 55}{res}{space 2}-.0884468{col 67}{space 2} .2108764{col 78}{space 1}   -0.42{col 87}{space 3}0.678{col 95}{space 4}-.5219095{col 108}{space 3} .3450159
+{txt}{space 25}Secondary GCE 'O'/'N' Level  {c |}{col 55}{res}{space 2} .5785457{col 67}{space 2} .5907783{col 78}{space 1}    0.98{col 87}{space 3}0.336{col 95}{space 4}-.6358164{col 108}{space 3} 1.792908
+{txt}{space 5}Trade or work qualification not from University  {c |}{col 55}{res}{space 2}-.4737362{col 67}{space 2} .2935502{col 78}{space 1}   -1.61{col 87}{space 3}0.119{col 95}{space 4}-1.077137{col 108}{space 3} .1296648
+{txt}University Bachelor's Degree/Postgrad Diploma/Prof..  {c |}{col 55}{res}{space 2} .0686831{col 67}{space 2} .2032917{col 78}{space 1}    0.34{col 87}{space 3}0.738{col 95}{space 4}-.3491891{col 108}{space 3} .4865552
+{txt}{space 53} {c |}
+{space 46}marital {c |}
+{space 15}Married/civil partnership/civil union  {c |}{col 55}{res}{space 2} .9888064{col 67}{space 2} .2733858{col 78}{space 1}    3.62{col 87}{space 3}0.001{col 95}{space 4} .4268539{col 108}{space 3} 1.550759
+{txt}{space 39}Never married  {c |}{col 55}{res}{space 2} 1.578179{col 67}{space 2} .5218382{col 78}{space 1}    3.02{col 87}{space 3}0.006{col 95}{space 4} .5055256{col 108}{space 3} 2.650833
+{txt}{space 43}Separated  {c |}{col 55}{res}{space 2} .8825871{col 67}{space 2} .5305981{col 78}{space 1}    1.66{col 87}{space 3}0.108{col 95}{space 4}-.2080729{col 108}{space 3} 1.973247
+{txt}{space 53} {c |}
+{space 47}ethnic {c |}
+{space 46}Indian  {c |}{col 55}{res}{space 2}-.1934835{col 67}{space 2} .2673238{col 78}{space 1}   -0.72{col 87}{space 3}0.476{col 95}{space 4}-.7429756{col 108}{space 3} .3560085
+{txt}{space 47}Malay  {c |}{col 55}{res}{space 2} .6411691{col 67}{space 2} .3737353{col 78}{space 1}    1.72{col 87}{space 3}0.098{col 95}{space 4}-.1270549{col 108}{space 3} 1.409393
+{txt}{space 49}Mix  {c |}{col 55}{res}{space 2}-.3178772{col 67}{space 2} .2993621{col 78}{space 1}   -1.06{col 87}{space 3}0.298{col 95}{space 4}-.9332249{col 108}{space 3} .2974704
+{txt}{space 53} {c |}
+{space 45}hhincome {c |}
+{space 33}1,622 - 3,273/month  {c |}{col 55}{res}{space 2} .9951784{col 67}{space 2} .2460876{col 78}{space 1}    4.04{col 87}{space 3}0.000{col 95}{space 4} .4893381{col 108}{space 3} 1.501019
+{txt}{space 31}10,694 - 13,188/month  {c |}{col 55}{res}{space 2} 1.184288{col 67}{space 2} .2691948{col 78}{space 1}    4.40{col 87}{space 3}0.000{col 95}{space 4}   .63095{col 108}{space 3} 1.737625
+{txt}{space 31}13,189 - 16,601/month  {c |}{col 55}{res}{space 2} .9773143{col 67}{space 2} .3294718{col 78}{space 1}    2.97{col 87}{space 3}0.006{col 95}{space 4} .3000752{col 108}{space 3} 1.654553
+{txt}{space 36}16,601 and above  {c |}{col 55}{res}{space 2} 1.097496{col 67}{space 2} .4109856{col 78}{space 1}    2.67{col 87}{space 3}0.013{col 95}{space 4} .2527032{col 108}{space 3} 1.942289
+{txt}{space 33}3,274 - 4,676/month  {c |}{col 55}{res}{space 2} .4694578{col 67}{space 2} .2713331{col 78}{space 1}    1.73{col 87}{space 3}0.095{col 95}{space 4}-.0882753{col 108}{space 3} 1.027191
+{txt}{space 33}4,677 - 6,144/month  {c |}{col 55}{res}{space 2} .6649111{col 67}{space 2} .2575027{col 78}{space 1}    2.58{col 87}{space 3}0.016{col 95}{space 4} .1356067{col 108}{space 3} 1.194216
+{txt}{space 33}6,145 - 7,423/month  {c |}{col 55}{res}{space 2} 1.008506{col 67}{space 2} .4080825{col 78}{space 1}    2.47{col 87}{space 3}0.020{col 95}{space 4}   .16968{col 108}{space 3} 1.847331
+{txt}{space 33}7,424 - 9,082/month  {c |}{col 55}{res}{space 2} .9097052{col 67}{space 2} .2519547{col 78}{space 1}    3.61{col 87}{space 3}0.001{col 95}{space 4}  .391805{col 108}{space 3} 1.427605
+{txt}{space 32}9,083 - 10,693/month  {c |}{col 55}{res}{space 2} 1.052497{col 67}{space 2} .2579007{col 78}{space 1}    4.08{col 87}{space 3}0.000{col 95}{space 4} .5223748{col 108}{space 3}  1.58262
+{txt}{space 53} {c |}
+{space 48}_cons {c |}{col 55}{res}{space 2}-2.956209{col 67}{space 2} 4.920471{col 78}{space 1}   -0.60{col 87}{space 3}0.553{col 95}{space 4}-13.07038{col 108}{space 3} 7.157964
+{txt}{hline 54}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text} subzone2014{col 14}{c |}{space 1}      119{col 27}{space 1}      119{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+(note: file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp not found)
+file C:\Users\Admin\AppData\Local\Temp\ST_1i000002.tmp saved
+obs was 7, now 8
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+file ./data/pfas-tf-spresto.dta saved
+
+{com}. restore
+{txt}
+{com}. 
+. // ============================================================================
+. * -----------------------------------------------------------------------------
+. tictoc toc
+{res}{hline}
+{txt}----------- Time log -----------
+Start time:  6 Dec 2025 09:55:36
+End time:  6 Dec 2025 09:55:39
+Elapsed seconds: {res}        2
+{txt}Elapsed minutes: {res}        0
+{txt}Elapsed hours: {res}        0
+{hline}
+{txt}
+{com}. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}\\wsl.localhost\Debian\home\lsys\gusto\scripts\tfpfas\logs/tf-pfas-spresto.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res} 6 Dec 2025, 09:55:39
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}
