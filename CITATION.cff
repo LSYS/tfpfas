@@ -1,7 +1,8 @@
 cff-version: 1.2.0
 message: "To cite the code or paper:"
-title: "Residential proximity to transport facilities as urban determinants of individual-level per- and poly-fluoroalkyl substance (PFAS) exposures: Analysis of two longitudinal cohorts in Singapore"
-type: article
+title: "Residential proximity to transport facilities as urban determinants of individual-level per- and poly-fluoroalkyl substance (PFAS) exposures (materials)"
+type: software
+
 authors:
   - family-names: Shen
     given-names: Lucas
@@ -21,18 +22,32 @@ authors:
     given-names: Tarik
   - family-names: Huang
     given-names: Jonathan Y.
-date-released: "2026-01-09"
-journal: "Environmental Health"
-year: 2026
-doi: "10.1186/s12940-025-01257-5"
-url: "https://doi.org/10.1186/s12940-025-01257-5"
-issn: "1476-069X"
-abstract: >-
-  Policy-relevant spatial determinants of human exposure to Perfluoroalkyl Substances (PFAS),
-  a broad class of persistent environmental contaminants affecting pregnancy and child development,
-  remain poorly understood because of the diversity of exposure sources. This is especially true
-  for modern, dense urban settings, which contain less well-studied built environment-related sources,
-  including transportation-related ground and airborne contamination.
-identifiers:
-  - type: other
-    value: "Shen2026"
+
+preferred-citation:
+  type: article
+  title: "Residential proximity to transport facilities as urban determinants of individual-level per- and poly-fluoroalkyl substance (PFAS) exposures: Analysis of two longitudinal cohorts in Singapore"
+  authors:
+    - family-names: Shen
+      given-names: Lucas
+    - family-names: Raj
+      given-names: Subhashni
+    - family-names: Oulhote
+      given-names: Youssef
+    - family-names: Valvi
+      given-names: Damaskini
+    - family-names: Ng
+      given-names: Sharon
+    - family-names: Loy
+      given-names: See Ling
+    - family-names: Chan
+      given-names: Shiao-yng
+    - family-names: Benmarhnia
+      given-names: Tarik
+    - family-names: Huang
+      given-names: Jonathan Y.
+  journal: "Environmental Health"
+  year: 2026
+  month: 1
+  doi: "10.1186/s12940-025-01257-5"
+  url: "https://doi.org/10.1186/s12940-025-01257-5"
+  issn: "1476-069X"
