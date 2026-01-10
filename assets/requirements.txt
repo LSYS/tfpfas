@@ -1,0 +1,12 @@
+pandas
+geopandas
+pyjanitor
+googlemaps
+tqdm
+matplotlib
+fiona
+sidetable
+Pillow
+PyYAML
+numpy
+forestplot
