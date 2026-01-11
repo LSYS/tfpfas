@@ -2,6 +2,7 @@
 # Residential Proximity to Transport Facilities and PFAS Exposures
 
 [![DocLinks](https://github.com/LSYS/tfpfas/actions/workflows/links.yml/badge.svg)](https://github.com/LSYS/tfpfas/actions/workflows/links.yml)
+[![Citations Checker](https://github.com/LSYS/tfpfas/actions/workflows/citations_watch.yml/badge.svg)](https://github.com/LSYS/tfpfas/actions/workflows/citations_watch.yml)
 
 Code to replicate all key results, tables, and figures for "Residential proximity to transport facilities as urban determinants of individual-level per- and poly-fluoroalkyl substance (PFAS) exposures: Analysis of two longitudinal cohorts in Singapore".
 
@@ -223,4 +224,5 @@ This research would not have been possible without the work of GUSTO and S-PREST
 This code is released under the [MIT License](./LICENSE).
 
 ## 📚 Citation
+
 
