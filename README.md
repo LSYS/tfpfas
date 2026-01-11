@@ -195,7 +195,7 @@ We discuss the implications of underappreciated urban sources given increasing u
 
 The statistical analyses are implemented in Stata code (tested on version 13 and 16).
 The spatial data construction and the geocoding pipeline is implemented in Python, with requirements including the Google Maps APIs.
-Please see [`./assets/requirements-stata.txt`](./assets/requirements-stata.txt) and [`./assets/requirements.txt`](./assets/requirements.txt) for the specific required packages.
+Please see [`./assets/requirements-stata.txt`](./assets/requirements-stata.txt) and [`./assets/requirements.txt`](./assets/requirements.txt) for the specific required packages and [`./ado/`](./ado/) for the required custom Stata programs.
 
 
 ## Analyses
@@ -235,6 +235,7 @@ This research would not have been possible without the work of GUSTO and S-PREST
 This code is released under the [MIT License](./LICENSE).
 
 ## 📚 Citation
+
 
 
 
