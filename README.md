@@ -1,6 +1,8 @@
 
 # Residential Proximity to Transport Facilities and PFAS Exposures
 
+[![DocLinks](https://github.com/LSYS/tfpfas/actions/workflows/links.yml/badge.svg)](https://github.com/LSYS/tfpfas/actions/workflows/links.yml)
+
 Code to replicate all key results, tables, and figures for "Residential proximity to transport facilities as urban determinants of individual-level per- and poly-fluoroalkyl substance (PFAS) exposures: Analysis of two longitudinal cohorts in Singapore".
 
 ## Summary
@@ -9,6 +11,9 @@ Linking PFAS concentrations in the blood plasma of pregnant women to a novel spa
 Querying Google Photos for the gazetted, geo-tagged land use parcels reveals that most transport facilities are small petrol kiosks, while those with larger footprints driving the associations are transit depots. 
 We replicate these spatial associations across different congeners in a younger cohort, and confirm that future residence (as a placebo exposure) reveals no such associations.
 We discuss the implications of underappreciated urban sources given increasing urbanization, as well as airborne transmission from automotive products as a plausible exposure mechanism.
+
+![exposure measure](./assets/exposure-tf-example.png)
+
 
 <details>
 <summary><b>📋 Full Abstract</b></summary>
@@ -218,3 +223,4 @@ This research would not have been possible without the work of GUSTO and S-PREST
 This code is released under the [MIT License](./LICENSE).
 
 ## 📚 Citation
+
