@@ -1,0 +1,17 @@
+full_analyte_name,pfas,measured,LOD,lod,analyte_code
+Perfluorohexane-1-sulphonic acid,pfhxs,384,0,0.1 ng/ml,PFHxS
+Perfluorooctanesulfonic acid,pfos_linear,384,0,0.2 ng/ml,PFOS-Linear
+Perfluorooctanesulfonic acid,pfos_branched,383,1,0.2 ng/ml,PFOS-Branched
+Perfluorooctanoic acid,pfoa_linear,374,10,0.5 ng/ml,PFOA-Linear
+Perfluorononanoic acid,pfna,233,151,0.5 ng/ml,PFNA
+Perfluoroheptanesulfonic acid,pfhps,186,198,0.2 ng/ml,PFHpS
+Perfluorodecanoic acid,pfda,159,225,0.5 ng/ml,PFDA
+Perluoroheptanoic acid,pfhpa,130,254,0.2 ng/ml,PFHpA
+2-(N-Methylperfluorooctanesulfonamido) acetic acid,n_mefosaa,6,378,0.1 ng/ml,NMeFOSAA 
+6:2 Fluorotelomer phosphate monoester,6_2_pap,5,379,0.1 ng/ml,6:2 PAP 
+6:2 Fluorotelomer phosphate diester,6_2_dipap,2,382,0.1 ng/ml,6:2 diPAP 
+Perfluorobutanesulfonic acid,pfbs,1,383,0.2 ng/ml,PFBS
+6:2 Fluorotelomer sulfonic acid,6_2_fts,0,384,0.1 ng/ml,6:2 FTS
+2-(N-Ethylperfluorooctanesulfonamido) acetic acid,n_etfosaa,0,384,0.2 ng/ml,NEtFOSAA
+Perfluorodecanesulfonic acid,pfds,0,384,0.1 ng/ml,PFDS
+Perfluorooctanesulfonamide,pfosa,0,384,0.1 ng/ml,PFOSA
