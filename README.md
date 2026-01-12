@@ -206,7 +206,7 @@ do tfpfas
 ```
 
 This loads the data, runs all statistical analyses, generates tables and figures, and performs robustness checks.
-The master file calls all other analysis scripts in sequence, generates tables to [`./tables/`](./tables/) and figures to [`./figures/`](./figures/), and logs all output to `./logs/tf-pfas.log`.
+The master file calls all other analysis scripts in sequence, generates tables to [`./tables/`](./tables/) and figures to [`./figures/`](./figures/), and logs all output to [`./logs/`](./logs/).
 
 
 
@@ -235,6 +235,7 @@ This research would not have been possible without the work of GUSTO and S-PREST
 This code is released under the [MIT License](./LICENSE).
 
 ## 📚 Citation
+
 
 
 
