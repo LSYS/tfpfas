@@ -1,7 +1,8 @@
 
 # Residential Proximity to Transport Facilities and PFAS Exposures
 
-[![DocLinks](https://github.com/LSYS/tfpfas/actions/workflows/links.yml/badge.svg)](https://github.com/LSYS/tfpfas/actions/workflows/links.yml)
+[![DOI](https://img.shields.io/badge/DOI-10.1186%2Fs12940--025--01257--5-blue)](https://doi.org/10.1186/s12940-025-01257-5)<br>
+[![DocLinks](https://github.com/LSYS/tfpfas/actions/workflows/links.yml/badge.svg)](https://github.com/LSYS/tfpfas/actions/workflows/links.yml)<br>
 [![Citations Checker](https://github.com/LSYS/tfpfas/actions/workflows/citations_watch.yml/badge.svg)](https://github.com/LSYS/tfpfas/actions/workflows/citations_watch.yml)
 
 Code to replicate all key results, tables, and figures for "Residential proximity to transport facilities as urban determinants of individual-level per- and poly-fluoroalkyl substance (PFAS) exposures: Analysis of two longitudinal cohorts in Singapore".
@@ -15,7 +16,12 @@ We discuss the implications of underappreciated urban sources given increasing u
 
 ![exposure measure](./assets/exposure-tf-example.png)
 
+> Shen, Lucas, Subhashni Raj, Youssef Oulhote, Damaskini Valvi, Sharon Ng, See Ling Loy, Shiao-yng Chan, Tarik Benmarhnia, and Jonathan Y. Huang. 2026. “Residential Proximity to Transport Facilities as Urban Determinants of Individual-Level Per- and Poly-Fluoroalkyl Substance (PFAS) Exposures: Analysis of Two Longitudinal Cohorts in Singapore.” Environmental Health 25: 1257. https://doi.org/10.1186/s12940-025-01257-5
 
+📖 **[Read the paper (free access)](https://rdcu.be/eZ1Uw)** | [DOI: 10.1186/s12940-025-01257-5](https://doi.org/10.1186/s12940-025-01257-5)
+
+
+> 
 <details>
 <summary><b>📋 Full Abstract</b></summary>
 
@@ -28,6 +34,7 @@ We discuss the implications of underappreciated urban sources given increasing u
 **Interpretations:** Transport facilities are prevalent near residences in urban settings and may be potential sources of PFAS emissions from automotive-related lubricants, parts, and materials. Our findings that exposure was robustly associated with individual-level concentration, over and above behavioral and other factors, highlight the importance of monitoring these and other urban sources of exposure.
 
 </details>
+
 
 ## 📁 Repository Structure
 
@@ -234,9 +241,25 @@ This research would not have been possible without the work of GUSTO and S-PREST
 
 This code is released under the [MIT License](./LICENSE).
 
+
 ## 📚 Citation
 
+If this work is useful to you, please consider citing:
 
-
-
+> Shen, Lucas, Subhashni Raj, Youssef Oulhote, Damaskini Valvi, Sharon Ng, See Ling Loy, Shiao-yng Chan, Tarik Benmarhnia, and Jonathan Y. Huang. 2026. “Residential Proximity to Transport Facilities as Urban Determinants of Individual-Level Per- and Poly-Fluoroalkyl Substance (PFAS) Exposures: Analysis of Two Longitudinal Cohorts in Singapore.” Environmental Health 25: 1257. https://doi.org/10.1186/s12940-025-01257-5
+> 
+**BibTeX:**
+```bibtex
+@article{tfpfas,
+  author  = {Shen, Lucas and Raj, Subhashni and Oulhote, Youssef and Valvi, Damaskini and Ng, Sharon and Loy, See Ling and Chan, Shiao-yng and Benmarhnia, Tarik and Huang, Jonathan Y.},
+  title   = {Residential proximity to transport facilities as urban determinants of individual-level per- and poly-fluoroalkyl substance (PFAS) exposures: Analysis of two longitudinal cohorts in Singapore},
+  journal = {Environmental Health},
+  year    = {2026},
+  volume  = {25},
+  pages   = {1257},
+  doi     = {10.1186/s12940-025-01257-5},
+  url     = {https://doi.org/10.1186/s12940-025-01257-5},
+  issn    = {1476-069X}
+}
+```
 
